@@ -136,13 +136,30 @@ export const RegisterForm: React.FC = () => {
     try {
       await register(formData);
       navigate('/dashboard');
-    } catch (err) {
-      if (err instanceof Error && err.message === 'EMAIL_ALREADY_EXISTS') {
+    } catch (err: unknown) {
+      let serverMsg: string | undefined;
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as {
+          response?: { status?: number; data?: { detail?: string; message?: string } };
+        };
+        serverMsg = axiosErr.response?.data?.detail || axiosErr.response?.data?.message;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        const errObj = err as { message?: string };
+        if (errObj.message?.includes('Network Error') || errObj.message?.includes('ERR_CONNECTION_REFUSED')) {
+          serverMsg = 'Chưa bật máy chủ Backend (http://localhost:8000). Vui lòng chạy start-server.bat trước.';
+        }
+      }
+
+      if (serverMsg) {
+        setSubmitError(serverMsg);
+      } else if (err instanceof Error && err.message === 'EMAIL_ALREADY_EXISTS') {
         setSubmitError(
           'Địa chỉ email này đã được đăng ký. Vui lòng chuyển sang trang Đăng nhập.'
         );
       } else {
-        setSubmitError('Không thể khởi tạo tài khoản. Vui lòng kiểm tra lại thông tin.');
+        setSubmitError(
+          'Không thể kết nối máy chủ Backend tại http://localhost:8000. Vui lòng kiểm tra xem Backend đã khởi chạy chưa.'
+        );
       }
     }
   };

@@ -89,20 +89,34 @@ export const LoginForm: React.FC = () => {
       setFailedAttempts(0);
       resetCountdown();
       navigate('/dashboard');
-    } catch {
-      const nextAttempts = failedAttempts + 1;
+    } catch (err: unknown) {
+      let serverMsg: string | undefined;
+      let is429 = false;
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as {
+          response?: { status?: number; data?: { detail?: string; message?: string } };
+        };
+        serverMsg = axiosErr.response?.data?.detail || axiosErr.response?.data?.message;
+        if (axiosErr.response?.status === 429) {
+          is429 = true;
+        }
+      }
+
+      const nextAttempts = is429 ? MAX_ATTEMPTS : failedAttempts + 1;
       setFailedAttempts(nextAttempts);
       window.localStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, String(nextAttempts));
 
-      if (nextAttempts >= MAX_ATTEMPTS) {
+      if (nextAttempts >= MAX_ATTEMPTS || is429) {
         startCountdown(LOCKOUT_DURATION_SECONDS);
         setAuthError(
-          'Bạn đã nhập sai quá 5 lần quy định. Tài khoản tạm thời bị khóa trong 15 phút để bảo mật.'
+          serverMsg ||
+            'Bạn đã nhập sai quá 5 lần quy định. Tài khoản tạm thời bị khóa trong 15 phút để bảo mật.'
         );
       } else {
         const remaining = MAX_ATTEMPTS - nextAttempts;
         setAuthError(
-          `Email hoặc mật khẩu không chính xác. Còn ${remaining} lần thử trước khi khóa bảo mật 15 phút.`
+          serverMsg ||
+            `Email hoặc mật khẩu không chính xác. Còn ${remaining} lần thử trước khi khóa bảo mật 15 phút.`
         );
       }
     }

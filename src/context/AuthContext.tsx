@@ -12,7 +12,11 @@ import {
   authenticateWithMock,
   registerWithMock,
 } from '../mock/auth.mock';
-import { axiosInstance, triggerSimulated401OnNextCall } from '../utils/axiosInstance';
+import {
+  axiosInstance,
+  triggerSimulated401OnNextCall,
+  USE_REAL_BACKEND,
+} from '../utils/axiosInstance';
 
 export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
@@ -98,7 +102,14 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
   const login = useCallback(async (payload: ILoginPayload): Promise<IAuthResponse> => {
     setIsLoading(true);
     try {
-      const response = await authenticateWithMock(payload);
+      let response: IAuthResponse;
+      if (USE_REAL_BACKEND) {
+        const { data } = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
+        response = data;
+      } else {
+        response = await authenticateWithMock(payload);
+      }
+
       window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
       window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
       window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
@@ -119,7 +130,14 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     async (payload: IRegisterPayload): Promise<IAuthResponse> => {
       setIsLoading(true);
       try {
-        const response = await registerWithMock(payload);
+        let response: IAuthResponse;
+        if (USE_REAL_BACKEND) {
+          const { data } = await axiosInstance.post<IAuthResponse>('/auth/register', payload);
+          response = data;
+        } else {
+          response = await registerWithMock(payload);
+        }
+
         window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
@@ -139,9 +157,16 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
   );
 
   /**
-   * [S1-02] Nút Logout xóa sạch storage (giữ lại danh sách tài khoản đã đăng ký)
+   * [S1-02] Nút Logout: Gửi request thu hồi phiên phía server & xóa sạch storage
    */
   const logout = useCallback((): void => {
+    if (USE_REAL_BACKEND) {
+      const storedRefreshToken = window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+      axiosInstance
+        .post('/auth/logout', { refreshToken: storedRefreshToken })
+        .catch(() => {});
+    }
+
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);

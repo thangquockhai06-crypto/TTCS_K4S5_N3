@@ -39,58 +39,72 @@ export const triggerSimulated401OnNextCall = (): void => {
 };
 
 /**
+ * Cấu hình kết nối Backend:
+ * - true: Kết nối tới Python FastAPI Backend (http://localhost:8000/api/v1)
+ * - false: Sử dụng Mock Adapter chạy giả lập trong trình duyệt
+ */
+export const USE_REAL_BACKEND = true;
+export const API_BASE_URL = USE_REAL_BACKEND
+  ? 'http://localhost:8000/api/v1'
+  : 'https://mock.nexuscrm.internal/api/v1';
+
+/**
  * [S1-02] axiosInstance configured with:
- * 1. Custom Mock Adapter (100% Frontend-only, no backend required)
+ * 1. Custom Mock Adapter (khi USE_REAL_BACKEND = false) hoặc Real Network Adapter
  * 2. Request Interceptor: Injects Authorization: Bearer <accessToken>
  * 3. Response Interceptor: Catches 401, refreshes token automatically, and retries queued requests
  */
 export const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'https://mock.nexuscrm.internal/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
   },
-  adapter: async (config: InternalAxiosRequestConfig): Promise<AxiosResponse> => {
-    await new Promise<void>((resolve) => {
-      window.setTimeout(() => resolve(), 150);
-    });
+  ...(USE_REAL_BACKEND
+    ? {}
+    : {
+        adapter: async (config: InternalAxiosRequestConfig): Promise<AxiosResponse> => {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(() => resolve(), 150);
+          });
 
-    const authHeader = config.headers.get('Authorization');
-    const isExpiredToken =
-      forceNextRequest401 ||
-      (typeof authHeader === 'string' && authHeader.includes('EXPIRED_ACCESS_TOKEN'));
+          const authHeader = config.headers.get('Authorization');
+          const isExpiredToken =
+            forceNextRequest401 ||
+            (typeof authHeader === 'string' && authHeader.includes('EXPIRED_ACCESS_TOKEN'));
 
-    if (isExpiredToken) {
-      forceNextRequest401 = false;
-      const unauthorizedResponse: AxiosResponse = {
-        data: { message: 'Access token expired' },
-        status: 401,
-        statusText: 'Unauthorized',
-        headers: {},
-        config,
-      };
-      throw new AxiosError(
-        'Request failed with status code 401',
-        'ERR_BAD_REQUEST',
-        config,
-        null,
-        unauthorizedResponse
-      );
-    }
+          if (isExpiredToken) {
+            forceNextRequest401 = false;
+            const unauthorizedResponse: AxiosResponse = {
+              data: { message: 'Access token expired' },
+              status: 401,
+              statusText: 'Unauthorized',
+              headers: {},
+              config,
+            };
+            throw new AxiosError(
+              'Request failed with status code 401',
+              'ERR_BAD_REQUEST',
+              config,
+              null,
+              unauthorizedResponse
+            );
+          }
 
-    return {
-      data: {
-        ok: true,
-        url: config.url,
-        authenticatedWith: authHeader ?? 'none',
-        timestamp: new Date().toISOString(),
-      },
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config,
-    };
-  },
+          return {
+            data: {
+              ok: true,
+              url: config.url,
+              authenticatedWith: authHeader ?? 'none',
+              timestamp: new Date().toISOString(),
+            },
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config,
+          };
+        },
+      }),
 });
 
 axiosInstance.interceptors.request.use(
@@ -129,7 +143,16 @@ axiosInstance.interceptors.response.use(
       try {
         const storedRefreshToken =
           window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN) ?? '';
-        const refreshed = await refreshTokenWithMock(storedRefreshToken);
+        let refreshed: { accessToken: string; refreshToken: string; refreshedAt: string };
+
+        if (USE_REAL_BACKEND) {
+          const res = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
+            refreshToken: storedRefreshToken,
+          });
+          refreshed = res.data;
+        } else {
+          refreshed = await refreshTokenWithMock(storedRefreshToken);
+        }
 
         window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, refreshed.accessToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, refreshed.refreshToken);
