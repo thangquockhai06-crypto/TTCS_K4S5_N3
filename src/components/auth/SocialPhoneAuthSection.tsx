@@ -1,21 +1,21 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
   Lock,
-  Minus,
   Phone,
-  Square,
+  UserCheck,
   UserPlus,
   X,
 } from 'lucide-react';
 import logoUrl from '../../assets/logo.svg';
 import { useAuth } from '../../hooks/useAuth';
-import { AuthProviderType, IUser } from '../../interfaces';
+import { AuthProviderType } from '../../interfaces';
 import {
   AUTH_STORAGE_KEYS,
   IStoredAccount,
@@ -30,7 +30,7 @@ export interface ISocialPhoneAuthSectionProps {
   disabled?: boolean;
 }
 
-interface IOAuthChooserAccount {
+interface IReadyAccount {
   id: string;
   fullName: string;
   identifier: string;
@@ -39,18 +39,18 @@ interface IOAuthChooserAccount {
   roleTitle?: string;
 }
 
-const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthChooserAccount>> = {
+const DEFAULT_READY_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IReadyAccount>> = {
   google: [
     {
-      id: 'gg-preset-1',
+      id: 'gg-ready-1',
       fullName: 'Trần Minh Quân',
       identifier: 'minhquan.tran@gmail.com',
       avatarUrl: createAvatarSvgDataUri('Tran Minh Quan', 1),
       companyName: 'NexusCRM Enterprise VN',
-      roleTitle: 'Quản trị viên (Tài khoản Google)',
+      roleTitle: 'Quản trị viên (Google Cá nhân)',
     },
     {
-      id: 'gg-preset-2',
+      id: 'gg-ready-2',
       fullName: 'Lê Hoàng Bảo Ngọc',
       identifier: 'baongoc.le.crm@gmail.com',
       avatarUrl: createAvatarSvgDataUri('Le Hoang Bao Ngoc', 4),
@@ -60,7 +60,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
   ],
   apple: [
     {
-      id: 'ap-preset-1',
+      id: 'ap-ready-1',
       fullName: 'Trần Minh Quân',
       identifier: 'minhquan.tran@icloud.com',
       avatarUrl: createAvatarSvgDataUri('Tran Minh Quan', 0),
@@ -68,7 +68,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
       roleTitle: 'Quản trị viên (Apple ID)',
     },
     {
-      id: 'ap-preset-2',
+      id: 'ap-ready-2',
       fullName: 'Phạm Gia Huy',
       identifier: 'giahuy.pham@icloud.com',
       avatarUrl: createAvatarSvgDataUri('Pham Gia Huy', 2),
@@ -78,7 +78,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
   ],
   linkedin: [
     {
-      id: 'li-preset-1',
+      id: 'li-ready-1',
       fullName: 'Trần Minh Quân',
       identifier: 'minhquan.tran@linkedin.com',
       avatarUrl: createAvatarSvgDataUri('Tran Minh Quan', 3),
@@ -86,7 +86,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
       roleTitle: 'Giám đốc Phát triển Doanh thu (LinkedIn)',
     },
     {
-      id: 'li-preset-2',
+      id: 'li-ready-2',
       fullName: 'Vũ Thu Phương',
       identifier: 'thuphuong.vu.b2b@linkedin.com',
       avatarUrl: createAvatarSvgDataUri('Vu Thu Phuong', 1),
@@ -96,7 +96,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
   ],
   phone: [
     {
-      id: 'ph-preset-1',
+      id: 'ph-ready-1',
       fullName: 'Trần Minh Quân',
       identifier: '0912345678',
       avatarUrl: createAvatarSvgDataUri('Tran Minh Quan', 2),
@@ -104,7 +104,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
       roleTitle: 'Xác thực Số điện thoại (+84)',
     },
     {
-      id: 'ph-preset-2',
+      id: 'ph-ready-2',
       fullName: 'Đỗ Hoàng Nam',
       identifier: '0987654321',
       avatarUrl: createAvatarSvgDataUri('Do Hoang Nam', 3),
@@ -114,7 +114,7 @@ const DEFAULT_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthCh
   ],
 };
 
-const GoogleIconSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
+const GoogleIconSvg: React.FC<{ size?: number }> = ({ size = 17 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
     <path
       fill="#EA4335"
@@ -135,7 +135,7 @@ const GoogleIconSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
   </svg>
 );
 
-const LinkedInIconSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
+const LinkedInIconSvg: React.FC<{ size?: number }> = ({ size = 17 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
     <path
       fill="#0A66C2"
@@ -144,13 +144,11 @@ const LinkedInIconSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
   </svg>
 );
 
-const AppleIconSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
+const AppleIconSvg: React.FC<{ size?: number }> = ({ size = 17 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
   </svg>
 );
-
-type ChooserStep = 'chooser' | 'confirm_account' | 'custom_form' | 'phone_otp';
 
 export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
   disabled = false,
@@ -159,35 +157,30 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
   const navigate = useNavigate();
 
   const [activeProvider, setActiveProvider] = useState<AuthProviderType | null>(null);
-  const [step, setStep] = useState<ChooserStep>('chooser');
-  const [selectedAccount, setSelectedAccount] = useState<IOAuthChooserAccount | null>(null);
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'ready' | 'custom'>('ready');
+  const [connectingName, setConnectingName] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Custom Account Form States
-  const [customEmailOrPhone, setCustomEmailOrPhone] = useState<string>('');
-  const [customFullName, setCustomFullName] = useState<string>('');
-  const [customPassword, setCustomPassword] = useState<string>('');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  // State cho tab "Tự nhập tài khoản"
+  const [customIdentifier, setCustomIdentifier] = useState<string>('');
+  const [customName, setCustomName] = useState<string>('');
+  const [customPasswordOrOtp, setCustomPasswordOrOtp] = useState<string>('');
+  const [showPass, setShowPass] = useState<boolean>(false);
   const [hideAppleEmail, setHideAppleEmail] = useState<boolean>(false);
+  const [sentOtpCode, setSentOtpCode] = useState<string | null>(null);
 
-  // Phone OTP States
-  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
-  const [matchedPhoneUser, setMatchedPhoneUser] = useState<IUser | null>(null);
-  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
-  const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
-  // Merge preset accounts with any accounts the user previously registered in localStorage
-  const chooserAccounts = useMemo<IOAuthChooserAccount[]>(() => {
+  // Gộp tài khoản có sẵn và tài khoản người dùng đã từng tự nhập vào localStorage
+  const readyAccounts = useMemo<IReadyAccount[]>(() => {
     if (!activeProvider) return [];
-    const presets = [...DEFAULT_PROVIDER_ACCOUNTS[activeProvider]];
+    const presets = [...DEFAULT_READY_ACCOUNTS[activeProvider]];
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
     if (!raw) return presets;
 
     try {
       const stored = JSON.parse(raw) as IStoredAccount[];
-      const providerStored = stored
+      const fromStorage = stored
         .filter((item) => item.user.id.includes(`usr-${activeProvider}`))
-        .map((item): IOAuthChooserAccount => ({
+        .map((item): IReadyAccount => ({
           id: item.user.id,
           fullName: item.user.fullName,
           identifier:
@@ -199,7 +192,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           roleTitle: item.user.title,
         }));
 
-      const merged = [...providerStored];
+      const merged = [...fromStorage];
       presets.forEach((p) => {
         if (!merged.some((m) => m.identifier.toLowerCase() === p.identifier.toLowerCase())) {
           merged.push(p);
@@ -211,728 +204,562 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
     }
   }, [activeProvider]);
 
-  const handleOpenProvider = (provider: AuthProviderType): void => {
+  const openPopup = (provider: AuthProviderType): void => {
     setActiveProvider(provider);
-    setStep('chooser');
-    setSelectedAccount(null);
-    setModalError(null);
-    setCustomEmailOrPhone('');
-    setCustomFullName('');
-    setCustomPassword('');
-    setShowPassword(false);
+    setActiveTab('ready');
+    setConnectingName(null);
+    setErrorMsg(null);
+    setCustomIdentifier('');
+    setCustomName('');
+    setCustomPasswordOrOtp('');
+    setShowPass(false);
     setHideAppleEmail(false);
-    setGeneratedOtp(null);
-    setOtpDigits(['', '', '', '', '', '']);
+    setSentOtpCode(null);
   };
 
-  const handleClose = (): void => {
+  const closePopup = (): void => {
+    if (connectingName) return;
     setActiveProvider(null);
-    setModalError(null);
+    setErrorMsg(null);
   };
 
-  // Clicking an account row in "Chọn tài khoản"
-  const handleSelectAccountFromList = async (account: IOAuthChooserAccount): Promise<void> => {
-    setSelectedAccount(account);
-    setModalError(null);
+  // ẤN 1 CHẠM VÀO TÀI KHOẢN SẴN CÓ -> KẾT NỐI VÀ VÀO THẲNG LUÔN
+  const handleInstantConnectAccount = async (acc: IReadyAccount): Promise<void> => {
+    if (!activeProvider) return;
+    setErrorMsg(null);
+    setConnectingName(acc.fullName);
 
-    if (activeProvider === 'phone') {
-      // Send OTP to this selected phone number and go to OTP confirmation
-      try {
-        const res = await sendPhoneOtp(account.identifier);
-        setCustomEmailOrPhone(account.identifier);
-        setCustomFullName(account.fullName);
-        setGeneratedOtp(res.otpCode);
-        setMatchedPhoneUser(res.existingUser);
-        setOtpDigits(res.otpCode.split(''));
-        setStep('phone_otp');
-      } catch {
-        setModalError('Không thể gửi mã xác thực tới số điện thoại này.');
-      }
-      return;
-    }
-
-    setStep('confirm_account');
-  };
-
-  // Confirm connecting the chosen Google / LinkedIn / Apple account
-  const handleConfirmChosenAccount = async (): Promise<void> => {
-    if (!activeProvider || activeProvider === 'phone' || !selectedAccount) return;
     try {
-      await loginWithSocial({
-        provider: activeProvider,
-        email: selectedAccount.identifier,
-        fullName: selectedAccount.fullName,
-        companyName: selectedAccount.companyName,
-        roleTitle: selectedAccount.roleTitle,
-        hideAppleEmail: activeProvider === 'apple' ? hideAppleEmail : undefined,
-      });
-      handleClose();
+      if (activeProvider === 'phone') {
+        const otpRes = await sendPhoneOtp(acc.identifier);
+        await verifyPhoneOtp({
+          phoneNumber: acc.identifier,
+          fullName: acc.fullName,
+          otpCode: otpRes.otpCode,
+        });
+      } else {
+        await loginWithSocial({
+          provider: activeProvider,
+          email: acc.identifier,
+          fullName: acc.fullName,
+          companyName: acc.companyName,
+          roleTitle: acc.roleTitle,
+        });
+      }
+      setActiveProvider(null);
+      setConnectingName(null);
       navigate('/dashboard');
     } catch {
-      setModalError('Không thể kết nối tài khoản. Vui lòng thử lại.');
+      setConnectingName(null);
+      setErrorMsg('Kết nối tới tài khoản bị gián đoạn. Vui lòng thử lại.');
     }
   };
 
-  // Submitting "Sử dụng một tài khoản khác"
-  const handleCustomSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  // Gửi mã OTP khi tự nhập số điện thoại mới
+  const handleSendOtpForCustomPhone = async (): Promise<void> => {
+    setErrorMsg(null);
+    if (!isValidVietnamPhone(customIdentifier)) {
+      setErrorMsg('Số điện thoại không đúng định dạng 10 số Việt Nam (đầu 03, 05, 07, 08, 09).');
+      return;
+    }
+    try {
+      const res = await sendPhoneOtp(customIdentifier);
+      setSentOtpCode(res.otpCode);
+      setCustomPasswordOrOtp(res.otpCode);
+      if (res.existingUser && !customName.trim()) {
+        setCustomName(res.existingUser.fullName);
+      }
+    } catch {
+      setErrorMsg('Không thể gửi mã OTP tới số điện thoại này.');
+    }
+  };
+
+  // TỰ NHẬP TÀI KHOẢN CỦA MÌNH -> ĐÚNG THÌ VÀO ĐƯỢC, SAI THÌ BÁO LỖI
+  const handleCustomConnectSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     if (!activeProvider) return;
-    setModalError(null);
+    setErrorMsg(null);
 
+    const idVal = customIdentifier.trim().toLowerCase();
+
+    // Xử lý riêng cho Số điện thoại
     if (activeProvider === 'phone') {
-      if (!isValidVietnamPhone(customEmailOrPhone)) {
-        setModalError('Vui lòng nhập số điện thoại di động Việt Nam 10 chữ số (VD: 0912345678).');
+      if (!isValidVietnamPhone(idVal)) {
+        setErrorMsg('Lỗi: Số điện thoại phải gồm 10 chữ số hợp lệ (VD: 0912345678).');
         return;
       }
-      if (customFullName.trim().length < 2) {
-        setModalError('Vui lòng nhập họ và tên của bạn.');
+      if (!sentOtpCode) {
+        setErrorMsg('Vui lòng bấm nút "Nhận OTP" trước khi xác nhận kết nối.');
         return;
       }
+      if (customPasswordOrOtp.trim() !== sentOtpCode) {
+        setErrorMsg('Lỗi xác thực: Mã OTP không chính xác. Vui lòng kiểm tra lại.');
+        return;
+      }
+
+      setConnectingName(customName.trim() || normalizeVietnamPhone(idVal));
       try {
-        const res = await sendPhoneOtp(customEmailOrPhone);
-        setGeneratedOtp(res.otpCode);
-        setMatchedPhoneUser(res.existingUser);
-        setOtpDigits(['', '', '', '', '', '']);
-        setStep('phone_otp');
+        await verifyPhoneOtp({
+          phoneNumber: idVal,
+          fullName: customName.trim() || `Tài khoản SĐT (${normalizeVietnamPhone(idVal).slice(-4)})`,
+          otpCode: customPasswordOrOtp.trim(),
+        });
+        setActiveProvider(null);
+        setConnectingName(null);
+        navigate('/dashboard');
       } catch {
-        setModalError('Không thể gửi mã OTP. Vui lòng kiểm tra lại số điện thoại.');
+        setConnectingName(null);
+        setErrorMsg('Lỗi kết nối: Mã OTP không hợp lệ hoặc đã hết hạn.');
       }
       return;
     }
 
-    const trimmedEmail = customEmailOrPhone.trim().toLowerCase();
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setModalError('Vui lòng nhập địa chỉ email hợp lệ.');
+    // Kiểm tra định dạng Email cho Google / Apple / LinkedIn
+    if (!idVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(idVal)) {
+      setErrorMsg('Lỗi định dạng: Vui lòng nhập địa chỉ email hợp lệ.');
       return;
     }
 
-    const derivedName =
-      customFullName.trim() ||
-      trimmedEmail
+    if (activeProvider === 'google' && !idVal.endsWith('@gmail.com') && !idVal.endsWith('.vn')) {
+      setErrorMsg('Không tìm thấy Tài khoản Google: Vui lòng nhập địa chỉ @gmail.com.');
+      return;
+    }
+
+    if (customPasswordOrOtp.length < 6) {
+      setErrorMsg('Mật khẩu không chính xác (yêu cầu tối thiểu 6 ký tự).');
+      return;
+    }
+
+    // Kiểm tra nếu tài khoản này đã lưu trước đó trong localStorage nhưng nhập sai mật khẩu
+    const rawStored = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
+    if (rawStored) {
+      try {
+        const list = JSON.parse(rawStored) as IStoredAccount[];
+        const existing = list.find((a) => a.email.toLowerCase() === idVal);
+        if (
+          existing &&
+          !existing.password.startsWith('oauth_') &&
+          existing.password !== customPasswordOrOtp
+        ) {
+          setErrorMsg('Mật khẩu không chính xác cho tài khoản này. Vui lòng thử lại.');
+          return;
+        }
+      } catch {
+        // ignore parse error
+      }
+    }
+
+    const displayName =
+      customName.trim() ||
+      idVal
         .split('@')[0]
         .replace(/[._-]/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
-    if (customPassword.length < 6) {
-      setModalError('Mật khẩu xác thực phải có ít nhất 6 ký tự.');
-      return;
-    }
-
+    setConnectingName(displayName);
     try {
       await loginWithSocial({
         provider: activeProvider,
-        email: trimmedEmail,
-        fullName: derivedName,
+        email: idVal,
+        fullName: displayName,
         hideAppleEmail: activeProvider === 'apple' ? hideAppleEmail : undefined,
       });
-      handleClose();
+
+      // Lưu lại mật khẩu người dùng tự nhập để lần sau kiểm tra đúng mật khẩu
+      const currentRaw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
+      if (currentRaw) {
+        const parsed = JSON.parse(currentRaw) as IStoredAccount[];
+        const updated = parsed.map((item) =>
+          item.email.toLowerCase() === idVal
+            ? { ...item, password: customPasswordOrOtp }
+            : item
+        );
+        window.localStorage.setItem(
+          AUTH_STORAGE_KEYS.REGISTERED_USERS,
+          JSON.stringify(updated)
+        );
+      }
+
+      setActiveProvider(null);
+      setConnectingName(null);
       navigate('/dashboard');
     } catch {
-      setModalError('Không thể xác thực tài khoản. Vui lòng kiểm tra lại.');
+      setConnectingName(null);
+      setErrorMsg('Không thể kết nối tài khoản. Vui lòng kiểm tra lại thông tin.');
     }
   };
 
-  const handleOtpDigitChange = (index: number, rawVal: string): void => {
-    setModalError(null);
-    const cleaned = rawVal.replace(/\D/g, '');
-    if (!cleaned) {
-      setOtpDigits((prev) => {
-        const next = [...prev];
-        next[index] = '';
-        return next;
-      });
-      return;
-    }
-
-    if (cleaned.length > 1) {
-      const chars = cleaned.slice(0, 6).split('');
-      setOtpDigits((prev) => {
-        const next = [...prev];
-        chars.forEach((ch, idx) => {
-          if (index + idx < 6) {
-            next[index + idx] = ch;
-          }
-        });
-        return next;
-      });
-      const focusIdx = Math.min(index + chars.length, 5);
-      otpInputRefs.current[focusIdx]?.focus();
-      return;
-    }
-
-    setOtpDigits((prev) => {
-      const next = [...prev];
-      next[index] = cleaned;
-      return next;
-    });
-
-    if (index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ): void => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpInputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerifyPhoneOtpSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
-    const enteredOtp = otpDigits.join('');
-    if (enteredOtp.length < 6) {
-      setModalError('Vui lòng nhập đủ 6 chữ số mã OTP.');
-      return;
-    }
-
-    try {
-      await verifyPhoneOtp({
-        phoneNumber: customEmailOrPhone,
-        fullName:
-          customFullName.trim() ||
-          matchedPhoneUser?.fullName ||
-          `Người dùng (${normalizeVietnamPhone(customEmailOrPhone).slice(-4)})`,
-        otpCode: enteredOtp,
-      });
-      handleClose();
-      navigate('/dashboard');
-    } catch (err) {
-      if (err instanceof Error && err.message === 'INVALID_OTP_CODE') {
-        setModalError('Mã OTP không chính xác. Vui lòng kiểm tra lại.');
-      } else {
-        setModalError('Mã OTP đã hết hạn. Vui lòng thử lại.');
-      }
-    }
-  };
-
-  const getWindowMeta = () => {
+  const getProviderConfig = () => {
     switch (activeProvider) {
       case 'google':
         return {
-          windowTitle: 'Đăng nhập - Tài khoản Google - Cá nhân',
+          name: 'Google',
           domain: 'accounts.google.com',
-          path: '/v3/signin/accountchooser?client_id=nexuscrm.vn&flowName=GeneralOAuthFlow',
-          subheader: 'Đăng nhập bằng Google',
-          icon: <GoogleIconSvg size={16} />,
+          path: '/o/oauth2/v2/auth?client_id=nexuscrm',
+          icon: <GoogleIconSvg size={20} />,
+          inputLabel: 'Email Google (@gmail.com)',
+          inputPlaceholder: 'tenban@gmail.com',
         };
       case 'apple':
         return {
-          windowTitle: 'Đăng nhập bằng Apple ID - Cá nhân',
+          name: 'Apple ID',
           domain: 'appleid.apple.com',
-          path: '/auth/authorize?client_id=vn.nexuscrm.enterprise&response_type=code',
-          subheader: 'Đăng nhập bằng Apple',
-          icon: <AppleIconSvg size={16} />,
+          path: '/auth/authorize?client_id=vn.nexuscrm',
+          icon: <AppleIconSvg size={20} />,
+          inputLabel: 'Apple ID (iCloud Email)',
+          inputPlaceholder: 'tenban@icloud.com',
         };
       case 'linkedin':
         return {
-          windowTitle: 'Đăng nhập LinkedIn - Kết nối Doanh nghiệp',
+          name: 'LinkedIn',
           domain: 'www.linkedin.com',
-          path: '/oauth/v2/authorization?client_id=nexuscrm_b2b&scope=openid+profile+email',
-          subheader: 'Đăng nhập bằng LinkedIn',
-          icon: <LinkedInIconSvg size={16} />,
+          path: '/oauth/v2/authorization?client_id=nexuscrm',
+          icon: <LinkedInIconSvg size={20} />,
+          inputLabel: 'Email LinkedIn',
+          inputPlaceholder: 'tenban@linkedin.com',
         };
       case 'phone':
       default:
         return {
-          windowTitle: 'Xác thực Số điện thoại - Cổng định danh cá nhân',
+          name: 'Số điện thoại',
           domain: 'id.nexuscrm.vn',
-          path: '/v3/signin/phonechooser?region=VN&channel=sms_otp',
-          subheader: 'Đăng nhập bằng Số điện thoại',
-          icon: <Phone size={15} color="#81C995" />,
+          path: '/oauth/phone-connect?region=VN',
+          icon: <Phone size={19} color="#81C995" />,
+          inputLabel: 'Số điện thoại (10 số)',
+          inputPlaceholder: '0912345678',
         };
     }
   };
 
-  const meta = getWindowMeta();
+  const cfg = getProviderConfig();
 
   return (
     <div className={styles.socialSection}>
       <div className={styles.divider}>
-        <span>HOẶC TIẾP TỤC VỚI</span>
+        <span>HOẶC TIẾP TỤC NHANH VỚI</span>
       </div>
 
-      {/* 4 nút hình viên thuốc (Pill Buttons) giống hệt Bức ảnh số 2 */}
-      <div className={styles.pillStack}>
+      {/* Bố cục 2x2 ngang gọn gàng như các nền tảng SaaS hiện đại */}
+      <div className={styles.compactGrid}>
         <button
           type="button"
-          className={styles.pillBtn}
+          className={styles.compactProviderBtn}
           disabled={disabled || isLoading}
-          onClick={() => handleOpenProvider('phone')}
+          onClick={() => openPopup('google')}
         >
-          <span className={styles.pillBtn__icon}>
-            <Phone size={18} strokeWidth={2.1} />
+          <span className={styles.compactProviderBtn__icon}>
+            <GoogleIconSvg />
           </span>
-          <span>Tiếp tục với số điện thoại</span>
+          <span>Google</span>
         </button>
 
         <button
           type="button"
-          className={styles.pillBtn}
+          className={styles.compactProviderBtn}
           disabled={disabled || isLoading}
-          onClick={() => handleOpenProvider('google')}
+          onClick={() => openPopup('apple')}
         >
-          <span className={styles.pillBtn__icon}>
-            <GoogleIconSvg size={19} />
+          <span className={styles.compactProviderBtn__icon}>
+            <AppleIconSvg />
           </span>
-          <span>Tiếp tục với Google</span>
+          <span>Apple</span>
         </button>
 
         <button
           type="button"
-          className={styles.pillBtn}
+          className={styles.compactProviderBtn}
           disabled={disabled || isLoading}
-          onClick={() => handleOpenProvider('apple')}
+          onClick={() => openPopup('linkedin')}
         >
-          <span className={styles.pillBtn__icon}>
-            <AppleIconSvg size={19} />
+          <span className={styles.compactProviderBtn__icon}>
+            <LinkedInIconSvg />
           </span>
-          <span>Tiếp tục với Apple</span>
+          <span>LinkedIn</span>
         </button>
 
         <button
           type="button"
-          className={styles.pillBtn}
+          className={styles.compactProviderBtn}
           disabled={disabled || isLoading}
-          onClick={() => handleOpenProvider('linkedin')}
+          onClick={() => openPopup('phone')}
         >
-          <span className={styles.pillBtn__icon}>
-            <LinkedInIconSvg size={19} />
+          <span className={styles.compactProviderBtn__icon} style={{ color: '#10B981' }}>
+            <Phone size={16} strokeWidth={2.2} />
           </span>
-          <span>Tiếp tục với LinkedIn</span>
+          <span>Số điện thoại</span>
         </button>
       </div>
 
-      {/* Cửa sổ Popup kết nối tài khoản giống hệt Bức ảnh số 1 */}
+      {/* Cửa sổ kết nối OAuth gọn nhẹ: Ấn tài khoản sẵn có là vào thẳng, hoặc tự nhập tài khoản */}
       <AnimatePresence>
         {activeProvider !== null && (
           <div
-            className={styles.oauthOverlay}
+            className={styles.popupOverlay}
             role="dialog"
             aria-modal="true"
-            aria-label={meta.windowTitle}
+            aria-label={`Kết nối ${cfg.name}`}
           >
             <motion.div
-              className={styles.oauthWindow}
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              className={styles.popupWindow}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.18 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.16 }}
             >
-              {/* Thanh tiêu đề cửa sổ trình duyệt */}
-              <div className={styles.windowTitleBar}>
-                <div className={styles.windowTitleBar__left}>
-                  {meta.icon}
-                  <span className={styles.windowTitleBar__title}>{meta.windowTitle}</span>
+              {connectingName && <div className={styles.connectingBar} />}
+
+              {/* Thanh URL gọn gàng trên đỉnh */}
+              <div className={styles.browserBar}>
+                <div className={styles.browserBar__url}>
+                  <Lock size={12} />
+                  <span>
+                    https://<span className={styles.browserBar__domain}>{cfg.domain}</span>
+                    {cfg.path}
+                  </span>
                 </div>
-                <div className={styles.windowTitleBar__controls}>
-                  <button
-                    type="button"
-                    className={styles.windowControlBtn}
-                    onClick={handleClose}
-                    aria-label="Thu nhỏ"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.windowControlBtn}
-                    aria-label="Phóng to"
-                  >
-                    <Square size={12} />
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.windowControlBtn} ${styles['windowControlBtn--close']}`}
-                    onClick={handleClose}
-                    aria-label="Đóng cửa sổ"
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={styles.browserBar__close}
+                  onClick={closePopup}
+                  aria-label="Đóng cửa sổ kết nối"
+                >
+                  <X size={15} />
+                </button>
               </div>
 
-              {/* Thanh địa chỉ URL có ổ khóa bảo mật */}
-              <div className={styles.windowUrlBar}>
-                <Lock size={13} className={styles.windowUrlBar__lock} />
-                <div className={styles.windowUrlBar__url}>
-                  https://<span className={styles.windowUrlBar__domain}>{meta.domain}</span>
-                  {meta.path}
-                </div>
-              </div>
-
-              {/* Thanh Subheader ("G Đăng nhập bằng Google") */}
-              <div className={styles.oauthSubheader}>
-                {meta.icon}
-                <span>{meta.subheader}</span>
-              </div>
-
-              {/* Nội dung chính của cửa sổ kết nối */}
-              <div className={styles.oauthBody}>
-                <div className={styles.appLogoBadge}>
-                  <img src={logoUrl} alt="NexusCRM" />
-                </div>
-
-                {/* BƯỚC 1: MÀN HÌNH "CHỌN TÀI KHOẢN" GIỐNG HỆT ẢNH 1 */}
-                {step === 'chooser' && (
-                  <>
-                    <div className={styles.chooserHeader}>
-                      <h2 className={styles.chooserTitle}>Chọn tài khoản</h2>
-                      <p className={styles.chooserSubtitle}>
-                        Tiếp tục tới{' '}
-                        <span className={styles.chooserSubtitle__app}>NexusCRM</span>
+              <div className={styles.popupContent}>
+                {/* Header ngang gọn */}
+                <div className={styles.popupHeader}>
+                  <div className={styles.popupHeader__left}>
+                    <div className={styles.popupHeader__badge}>{cfg.icon}</div>
+                    <div className={styles.popupHeader__titles}>
+                      <h2 className={styles.popupHeader__title}>
+                        Kết nối tài khoản {cfg.name}
+                      </h2>
+                      <p className={styles.popupHeader__subtitle}>
+                        Tiếp tục tới <strong>NexusCRM</strong>
                       </p>
                     </div>
+                  </div>
+                  <img
+                    src={logoUrl}
+                    alt="NexusCRM"
+                    className={styles.popupHeader__appLogo}
+                  />
+                </div>
 
-                    {modalError && (
-                      <div className={styles.oauthError} role="alert">
-                        <AlertTriangle size={15} />
-                        <span>{modalError}</span>
-                      </div>
-                    )}
+                {/* Thanh chuyển chế độ ngang gọn: Chọn sẵn có vs Tự nhập */}
+                <div className={styles.modeTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.modeTab} ${
+                      activeTab === 'ready' ? styles['modeTab--active'] : ''
+                    }`}
+                    onClick={() => {
+                      setActiveTab('ready');
+                      setErrorMsg(null);
+                    }}
+                  >
+                    <UserCheck size={14} />
+                    <span>Tài khoản sẵn có ({readyAccounts.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.modeTab} ${
+                      activeTab === 'custom' ? styles['modeTab--active'] : ''
+                    }`}
+                    onClick={() => {
+                      setActiveTab('custom');
+                      setErrorMsg(null);
+                    }}
+                  >
+                    <UserPlus size={14} />
+                    <span>Tự nhập tài khoản</span>
+                  </button>
+                </div>
 
-                    <div className={styles.accountList}>
-                      {chooserAccounts.map((acc) => (
-                        <button
-                          key={acc.id}
-                          type="button"
-                          className={styles.accountItem}
-                          onClick={() => void handleSelectAccountFromList(acc)}
-                        >
-                          <span className={styles.accountItem__avatar}>
+                {connectingName && (
+                  <div className={styles.connectingBanner}>
+                    <span>Đang kết nối với tài khoản {connectingName}...</span>
+                  </div>
+                )}
+
+                {errorMsg && (
+                  <div className={styles.errorBanner} role="alert">
+                    <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+
+                {/* TAB 1: ẤN VÀO TÀI KHOẢN SẴN CÓ LÀ VÀO THẲNG LUÔN */}
+                {activeTab === 'ready' && (
+                  <div className={styles.accountCardsList}>
+                    {readyAccounts.map((acc) => (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        className={styles.accountRowBtn}
+                        disabled={Boolean(connectingName)}
+                        onClick={() => void handleInstantConnectAccount(acc)}
+                      >
+                        <div className={styles.accountRowBtn__left}>
+                          <span className={styles.accountRowBtn__avatar}>
                             <img src={acc.avatarUrl} alt={acc.fullName} />
                           </span>
-                          <div className={styles.accountItem__details}>
-                            <span className={styles.accountItem__name}>{acc.fullName}</span>
-                            <span className={styles.accountItem__email}>
+                          <div className={styles.accountRowBtn__info}>
+                            <span className={styles.accountRowBtn__name}>
+                              {acc.fullName}
+                            </span>
+                            <span className={styles.accountRowBtn__sub}>
                               {acc.identifier}
                             </span>
                           </div>
-                        </button>
-                      ))}
-
-                      <button
-                        type="button"
-                        className={styles.accountItem}
-                        onClick={() => {
-                          setModalError(null);
-                          setStep('custom_form');
-                        }}
-                      >
-                        <span className={styles.accountItem__anotherIcon}>
-                          <UserPlus size={20} />
-                        </span>
-                        <div className={styles.accountItem__details}>
-                          <span className={styles.accountItem__name}>
-                            {activeProvider === 'phone'
-                              ? 'Sử dụng một số điện thoại khác'
-                              : 'Sử dụng một tài khoản khác'}
-                          </span>
                         </div>
+                        <span className={styles.accountRowBtn__badge}>Kết nối ngay →</span>
                       </button>
-                    </div>
-
-                    <p className={styles.consentText}>
-                      Để tiếp tục, {meta.domain} sẽ chia sẻ tên, địa chỉ email và ảnh hồ sơ của
-                      bạn với <span>NexusCRM</span>.
-                    </p>
-                  </>
+                    ))}
+                  </div>
                 )}
 
-                {/* BƯỚC 2A: XÁC NHẬN KẾT NỐI TÀI KHOẢN ĐÃ CHỌN */}
-                {step === 'confirm_account' && selectedAccount && (
-                  <>
-                    <div className={styles.chooserHeader}>
-                      <h2 className={styles.chooserTitle}>
-                        Đăng nhập vào NexusCRM
-                      </h2>
-                      <div className={styles.selectedAccountPill}>
-                        <span
-                          className={styles.accountItem__avatar}
-                          style={{ width: 24, height: 24 }}
-                        >
-                          <img
-                            src={selectedAccount.avatarUrl}
-                            alt={selectedAccount.fullName}
-                          />
-                        </span>
-                        <span>{selectedAccount.identifier}</span>
-                      </div>
-                    </div>
-
-                    {activeProvider === 'apple' && (
-                      <div className={styles.appleRelayOptions}>
-                        <label className={styles.appleRelayLabel}>
-                          <input
-                            type="radio"
-                            name="appleRelay"
-                            checked={!hideAppleEmail}
-                            onChange={() => setHideAppleEmail(false)}
-                          />
-                          <span>Chia sẻ Email của tôi ({selectedAccount.identifier})</span>
-                        </label>
-                        <label className={styles.appleRelayLabel}>
-                          <input
-                            type="radio"
-                            name="appleRelay"
-                            checked={hideAppleEmail}
-                            onChange={() => setHideAppleEmail(true)}
-                          />
-                          <span>Ẩn địa chỉ Email (@privaterelay.appleid.com)</span>
-                        </label>
-                      </div>
-                    )}
-
-                    <p className={styles.consentText}>
-                      Bằng cách bấm <strong>Tiếp tục</strong>, bạn cho phép{' '}
-                      <span>NexusCRM</span> kết nối với tài khoản{' '}
-                      <strong>{selectedAccount.fullName}</strong> để khởi tạo phiên làm việc.
-                    </p>
-
-                    <div className={styles.oauthActions}>
-                      <button
-                        type="button"
-                        className={styles.oauthCancelBtn}
-                        onClick={() => setStep('chooser')}
-                      >
-                        Đổi tài khoản
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.oauthPrimaryBtn}
-                        disabled={isLoading}
-                        onClick={() => void handleConfirmChosenAccount()}
-                      >
-                        {isLoading ? 'Đang kết nối...' : `Tiếp tục dưới tên ${selectedAccount.fullName}`}
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {/* BƯỚC 2B: NHẬP TÀI KHOẢN KHÁC / SỐ ĐIỆN THOẠI KHÁC */}
-                {step === 'custom_form' && (
+                {/* TAB 2: TỰ NHẬP TÀI KHOẢN CỦA MÌNH (GỌN 2 CỘT NGANG, KIỂM TRA ĐÚNG/LỖI) */}
+                {activeTab === 'custom' && (
                   <form
-                    onSubmit={(e) => void handleCustomSubmit(e)}
-                    className={styles.oauthForm}
+                    onSubmit={(e) => void handleCustomConnectSubmit(e)}
+                    className={styles.compactForm}
+                    noValidate
                   >
-                    <div className={styles.chooserHeader}>
-                      <h2 className={styles.chooserTitle}>
-                        {activeProvider === 'phone'
-                          ? 'Nhập số điện thoại'
-                          : 'Sử dụng tài khoản khác'}
-                      </h2>
-                      <p className={styles.chooserSubtitle}>
-                        Tiếp tục tới{' '}
-                        <span className={styles.chooserSubtitle__app}>NexusCRM</span>
-                      </p>
-                    </div>
-
-                    {modalError && (
-                      <div className={styles.oauthError} role="alert">
-                        <AlertTriangle size={15} />
-                        <span>{modalError}</span>
+                    <div className={styles.formRow2}>
+                      <div className={styles.fieldGroup}>
+                        <label htmlFor="custom-oauth-id">{cfg.inputLabel} *</label>
+                        <input
+                          id="custom-oauth-id"
+                          type={activeProvider === 'phone' ? 'tel' : 'email'}
+                          className={styles.compactInput}
+                          value={customIdentifier}
+                          onChange={(e) => {
+                            setCustomIdentifier(e.target.value);
+                            setErrorMsg(null);
+                          }}
+                          placeholder={cfg.inputPlaceholder}
+                        />
                       </div>
-                    )}
 
-                    <div className={styles.oauthField}>
-                      <label htmlFor="oauth-identifier">
-                        {activeProvider === 'phone'
-                          ? 'Số điện thoại di động Việt Nam (10 số)'
-                          : activeProvider === 'google'
-                          ? 'Địa chỉ Gmail của bạn'
-                          : activeProvider === 'apple'
-                          ? 'Apple ID (Email iCloud)'
-                          : 'Email LinkedIn của bạn'}
-                      </label>
-                      <input
-                        id="oauth-identifier"
-                        type={activeProvider === 'phone' ? 'tel' : 'email'}
-                        className={styles.oauthInput}
-                        value={customEmailOrPhone}
-                        onChange={(e) => {
-                          setCustomEmailOrPhone(e.target.value);
-                          setModalError(null);
-                        }}
-                        placeholder={
-                          activeProvider === 'phone'
-                            ? '0912345678'
-                            : activeProvider === 'google'
-                            ? 'tenban@gmail.com'
-                            : activeProvider === 'apple'
-                            ? 'tenban@icloud.com'
-                            : 'tenban@linkedin.com'
-                        }
-                        required
-                      />
+                      <div className={styles.fieldGroup}>
+                        <label htmlFor="custom-oauth-name">Họ và tên hiển thị</label>
+                        <input
+                          id="custom-oauth-name"
+                          type="text"
+                          className={styles.compactInput}
+                          value={customName}
+                          onChange={(e) => {
+                            setCustomName(e.target.value);
+                            setErrorMsg(null);
+                          }}
+                          placeholder="VD: Nguyễn Minh Khôi"
+                        />
+                      </div>
                     </div>
 
-                    <div className={styles.oauthField}>
-                      <label htmlFor="oauth-fullname">Họ và tên hiển thị</label>
-                      <input
-                        id="oauth-fullname"
-                        type="text"
-                        className={styles.oauthInput}
-                        value={customFullName}
-                        onChange={(e) => {
-                          setCustomFullName(e.target.value);
-                          setModalError(null);
-                        }}
-                        placeholder="Nhập họ và tên của bạn"
-                        required
-                      />
-                    </div>
-
-                    {activeProvider !== 'phone' && (
-                      <div className={styles.oauthField}>
-                        <label htmlFor="oauth-password">Mật khẩu xác thực</label>
-                        <div className={styles.oauthInputWrap}>
+                    {activeProvider !== 'phone' ? (
+                      <div className={styles.fieldGroup}>
+                        <label htmlFor="custom-oauth-pass">
+                          Mật khẩu {cfg.name} (Tối thiểu 6 ký tự) *
+                        </label>
+                        <div className={styles.inputWrap}>
                           <input
-                            id="oauth-password"
-                            type={showPassword ? 'text' : 'password'}
-                            className={styles.oauthInput}
-                            value={customPassword}
+                            id="custom-oauth-pass"
+                            type={showPass ? 'text' : 'password'}
+                            className={styles.compactInput}
+                            value={customPasswordOrOtp}
                             onChange={(e) => {
-                              setCustomPassword(e.target.value);
-                              setModalError(null);
+                              setCustomPasswordOrOtp(e.target.value);
+                              setErrorMsg(null);
                             }}
-                            placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
-                            required
+                            placeholder="Nhập mật khẩu để kết nối"
                           />
                           <button
                             type="button"
-                            className={styles.oauthEyeBtn}
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                            className={styles.eyeBtn}
+                            onClick={() => setShowPass((p) => !p)}
+                            aria-label={showPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                           >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                           </button>
                         </div>
                       </div>
-                    )}
-
-                    <div className={styles.oauthActions}>
-                      <button
-                        type="button"
-                        className={styles.oauthCancelBtn}
-                        onClick={() => {
-                          setModalError(null);
-                          setStep('chooser');
-                        }}
-                      >
-                        Quay lại
-                      </button>
-                      <button
-                        type="submit"
-                        className={styles.oauthPrimaryBtn}
-                        disabled={isLoading}
-                      >
-                        {isLoading
-                          ? 'Đang xử lý...'
-                          : activeProvider === 'phone'
-                          ? 'Nhận mã OTP'
-                          : 'Tiếp theo'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {/* BƯỚC 2C: XÁC THỰC MÃ SMS OTP CHO SỐ ĐIỆN THOẠI */}
-                {step === 'phone_otp' && (
-                  <form
-                    onSubmit={(e) => void handleVerifyPhoneOtpSubmit(e)}
-                    className={styles.oauthForm}
-                  >
-                    <div className={styles.chooserHeader}>
-                      <h2 className={styles.chooserTitle}>Xác minh số điện thoại</h2>
-                      <p className={styles.chooserSubtitle}>
-                        Nhập mã 6 chữ số vừa gửi tới{' '}
-                        <span className={styles.chooserSubtitle__app}>
-                          {normalizeVietnamPhone(customEmailOrPhone)}
-                        </span>
-                      </p>
-                    </div>
-
-                    {modalError && (
-                      <div className={styles.oauthError} role="alert">
-                        <AlertTriangle size={15} />
-                        <span>{modalError}</span>
-                      </div>
-                    )}
-
-                    {generatedOtp && (
-                      <div className={styles.smsBanner}>
-                        <div className={styles.smsBanner__info}>
-                          <span className={styles.smsBanner__tag}>
-                            <CheckCircle2
-                              size={12}
-                              style={{ display: 'inline', marginRight: 4 }}
+                    ) : (
+                      <>
+                        {sentOtpCode && (
+                          <div className={styles.inlineOtpBox}>
+                            <span>
+                              <CheckCircle2
+                                size={13}
+                                style={{ display: 'inline', marginRight: 4, color: '#81C995' }}
+                              />
+                              Mã SMS OTP vừa gửi: <strong>{sentOtpCode}</strong>
+                            </span>
+                            <span>(Đã tự điền)</span>
+                          </div>
+                        )}
+                        <div className={styles.fieldGroup}>
+                          <label htmlFor="custom-phone-otp">Mã xác thực OTP (6 chữ số) *</label>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                              id="custom-phone-otp"
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={6}
+                              className={styles.compactInput}
+                              value={customPasswordOrOtp}
+                              onChange={(e) => {
+                                setCustomPasswordOrOtp(e.target.value.replace(/\D/g, ''));
+                                setErrorMsg(null);
+                              }}
+                              placeholder="Nhập 6 số OTP"
                             />
-                            Tin nhắn SMS OTP
-                          </span>
-                          <span>
-                            Mã xác thực NexusCRM:{' '}
-                            <strong className={styles.smsBanner__code}>
-                              {generatedOtp}
-                            </strong>
-                          </span>
+                            <button
+                              type="button"
+                              className={styles.otpSendBtn}
+                              onClick={() => void handleSendOtpForCustomPhone()}
+                            >
+                              {sentOtpCode ? 'Gửi lại OTP' : 'Nhận mã OTP'}
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          className={styles.smsBanner__autoBtn}
-                          onClick={() => {
-                            setOtpDigits(generatedOtp.split(''));
-                            setModalError(null);
-                          }}
-                        >
-                          Điền nhanh
-                        </button>
-                      </div>
+                      </>
                     )}
 
-                    <div className={styles.otpRow}>
-                      {otpDigits.map((digit, idx) => (
+                    {activeProvider === 'apple' && (
+                      <label className={styles.appleRelayToggle}>
                         <input
-                          key={`otp-cell-${idx}`}
-                          ref={(el) => {
-                            otpInputRefs.current[idx] = el;
-                          }}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={6}
-                          value={digit}
-                          onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          className={styles.otpCell}
-                          aria-label={`Số OTP thứ ${idx + 1}`}
+                          type="checkbox"
+                          checked={hideAppleEmail}
+                          onChange={(e) => setHideAppleEmail(e.target.checked)}
                         />
-                      ))}
-                    </div>
+                        <span>Ẩn địa chỉ Email của tôi (@privaterelay.appleid.com)</span>
+                      </label>
+                    )}
 
-                    <div className={styles.oauthActions}>
-                      <button
-                        type="button"
-                        className={styles.oauthCancelBtn}
-                        onClick={() => {
-                          setModalError(null);
-                          setStep('chooser');
-                        }}
-                      >
-                        Chọn số khác
-                      </button>
+                    <div className={styles.formFooter}>
                       <button
                         type="submit"
-                        className={styles.oauthPrimaryBtn}
-                        disabled={isLoading}
+                        className={styles.submitConnectBtn}
+                        disabled={isLoading || Boolean(connectingName)}
                       >
-                        {isLoading ? 'Đang kết nối...' : 'Xác nhận & Kết nối'}
+                        <span>Kết nối & Truy cập NexusCRM</span>
+                        <ArrowRight size={15} />
                       </button>
                     </div>
                   </form>
                 )}
+
+                <p className={styles.footerNote}>
+                  {activeTab === 'ready'
+                    ? 'Nhấn trực tiếp vào tài khoản sẵn có ở trên để đăng nhập tức thì vào hệ thống.'
+                    : 'Tài khoản bạn tự nhập sẽ được lưu lại vào danh sách Tài khoản sẵn có cho lần sau.'}
+                </p>
               </div>
             </motion.div>
           </div>
