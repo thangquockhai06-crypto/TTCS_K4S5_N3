@@ -7,6 +7,7 @@
 ## I. Hướng Dẫn Dành Cho Thành Viên Trong Nhóm (Clone & Chạy Dự Án)
 
 ### 1. Cài đặt và chạy môi trường phát triển (Local Dev)
+
 Sau khi `git clone` dự án về máy, mở Terminal tại thư mục gốc của dự án và chạy:
 
 ```bash
@@ -17,9 +18,10 @@ npm install
 npm run dev
 ```
 
-*(Trên Windows, bạn cũng có thể nhấp đúp vào file `start-crm.bat` hoặc nhấn phím `F5` trong VS Code).*
+_(Trên Windows, bạn cũng có thể nhấp đúp vào file `start-crm.bat` hoặc nhấn phím `F5` trong VS Code)._
 
 ### 2. Kiểm tra kiểu dữ liệu & đóng gói Production
+
 ```bash
 # Kiểm tra TypeScript Strict Mode (đảm bảo 0 lỗi, không sử dụng any)
 npm run typecheck
@@ -29,6 +31,7 @@ npm run build
 ```
 
 ### 3. Tài khoản Quản trị viên (Admin) mặc định & Đăng nhập Đa phương thức
+
 - **Tên hiển thị:** `Quản Trị Viên Hệ Thống`
 - **Email:** `admin@nexuscrm.vn`
 - **Mật khẩu:** `Admin@2026`
@@ -42,12 +45,11 @@ npm run build
 
 ## II. Tiến Độ Triển Khai & Phân Chia Công Việc
 
-| Hạng mục / Mã Task | Mô tả chức năng | File triển khai chính | Trạng thái |
-| :--- | :--- | :--- | :--- |
-| **S1-01** | **Đăng nhập & Đăng ký hệ thống** (Live Validation, khóa 15 phút khi sai 5 lần) | - `src/components/auth/LoginForm.tsx`<br>- `src/components/auth/RegisterForm.tsx`<br>- `src/hooks/useCountdown.ts`<br>- `src/pages/LoginPage.tsx`<br>- `src/pages/RegisterPage.tsx` | Đã hoàn thành |
-| **S1-02** | **Duy trì phiên JWT & Tự động Refresh Token / Đăng xuất** | - `src/utils/axiosInstance.ts`<br>- `src/context/AuthContext.tsx`<br>- `src/hooks/useAuth.ts` | Đã hoàn thành |
-| **S1-03** | **Xác thực OAuth 2.0 / OIDC & Số điện thoại** (Google, Apple, LinkedIn, SMS OTP — Cho phép người dùng tự kết nối & lưu tài khoản vào dữ liệu hệ thống) | - `src/components/auth/SocialPhoneAuthSection.tsx`<br>- `src/components/auth/SocialPhoneAuthSection.module.css`<br>- `src/components/auth/LoginForm.tsx`<br>- `src/components/auth/RegisterForm.tsx` | Đã hoàn thành |
-| **UI-CORE** | **Hệ thống giao diện CRM 100% Tiếng Việt** (Dashboard, 50 Khách hàng, Chi tiết 360°, Thêm khách hàng, Kanban Deal Pipeline, Nhật ký, Báo cáo, Cài đặt) | - `src/components/layout/*`<br>- `src/components/customer/*`<br>- `src/components/dashboard/*`<br>- `src/pages/*` | Đã hoàn thành |
+| Hạng mục / Mã Task | Mô tả chức năng                                                                                                                                        | File triển khai chính                                                                                                                                                                                | Trạng thái    |
+| :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ |
+| **S1-01**          | **Đăng nhập & Đăng ký hệ thống** (Email, Google, Apple, LinkedIn, Số điện thoại, Live Validation, khóa 15 phút khi sai 5 lần)                          | - `src/components/auth/LoginForm.tsx`<br>- `src/components/auth/RegisterForm.tsx`<br>- `src/components/auth/SocialPhoneAuthSection.tsx`<br>- `src/hooks/useCountdown.ts`<br>- `src/pages/LoginPage.tsx`<br>- `src/pages/RegisterPage.tsx` | Đã hoàn thành |
+| **S1-02**          | **Duy trì phiên JWT & Tự động Refresh Token / Đăng xuất**                                                                                              | - `src/utils/axiosInstance.ts`<br>- `src/context/AuthContext.tsx`<br>- `src/hooks/useAuth.ts`                                                                                                        | Đã hoàn thành |
+| **UI-CORE**        | **Hệ thống giao diện CRM 100% Tiếng Việt** (Dashboard, 50 Khách hàng, Chi tiết 360°, Thêm khách hàng, Kanban Deal Pipeline, Nhật ký, Báo cáo, Cài đặt) | - `src/components/layout/*`<br>- `src/components/customer/*`<br>- `src/components/dashboard/*`<br>- `src/pages/*`                                                                                    | Đã hoàn thành |
 
 ---
 
