@@ -1,10 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle2, Eye, EyeOff, Phone, UserPlus, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Database,
+  Eye,
+  EyeOff,
+  Phone,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import logoUrl from '../../assets/logo.svg';
 import { useAuth } from '../../hooks/useAuth';
-import { AuthProviderType } from '../../interfaces';
+import { AuthProviderType, IUser } from '../../interfaces';
 import {
   AUTH_STORAGE_KEYS,
   IStoredAccount,
@@ -19,11 +29,6 @@ export interface ISocialPhoneAuthSectionProps {
   disabled?: boolean;
 }
 
-/**
- * Cấu trúc Payload chuẩn của Mã thông báo nhận dạng JWT (JWT ID Token)
- * Theo đúng Bước 2 & Bước 6 của Google Codelab:
- * https://codelabs.developers.google.com/codelabs/sign-in-with-google-button?hl=vi
- */
 export interface IOidcIdTokenPayload {
   iss: string;
   azp: string;
@@ -47,10 +52,6 @@ export interface ICredentialResponse {
   provider: AuthProviderType;
 }
 
-/**
- * Hàm decodeJWT chuyển đổi mã thông báo nhận dạng JWT sang JSON thuần túy
- * (Đúng theo mẫu mã trong Bước 2 của Google Sign-In Codelab)
- */
 export function decodeJWT(token: string): IOidcIdTokenPayload {
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -63,9 +64,6 @@ export function decodeJWT(token: string): IOidcIdTokenPayload {
   return JSON.parse(jsonPayload) as IOidcIdTokenPayload;
 }
 
-/**
- * Hàm mã hóa UTF-8 sang Base64URL để tạo JWT ID Token chuẩn OIDC
- */
 function encodeBase64Url(str: string): string {
   const utf8Bytes = encodeURIComponent(str).replace(
     /%([0-9A-F]{2})/g,
@@ -74,9 +72,6 @@ function encodeBase64Url(str: string): string {
   return btoa(utf8Bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/**
- * Tạo JWT ID Token chuẩn OpenID Connect giống hệt phản hồi từ Google Identity Services (Bước 6 Codelab)
- */
 function createOidcIdToken(params: {
   provider: AuthProviderType;
   sub: string;
@@ -125,59 +120,14 @@ function createOidcIdToken(params: {
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
-interface IOAuthAccountItem {
+interface IUserSavedSocialAccount {
   sub: string;
   name: string;
   identifier: string;
   picture: string;
-  consented: boolean;
+  companyName: string;
+  roleTitle: string;
 }
-
-const INITIAL_PROVIDER_ACCOUNTS: Record<AuthProviderType, ReadonlyArray<IOAuthAccountItem>> = {
-  google: [
-    {
-      sub: '1082718281828459045',
-      name: 'Trần Minh Quân',
-      identifier: 'minhquan.tran@gmail.com',
-      picture: createAvatarSvgDataUri('Tran Minh Quan', 1),
-      consented: true,
-    },
-    {
-      sub: '1094827163549201842',
-      name: 'Lê Hoàng Bảo Ngọc',
-      identifier: 'baongoc.le.crm@gmail.com',
-      picture: createAvatarSvgDataUri('Le Hoang Bao Ngoc', 4),
-      consented: false,
-    },
-  ],
-  apple: [
-    {
-      sub: '001428.9a8b7c6d5e4f.2026',
-      name: 'Trần Minh Quân',
-      identifier: 'minhquan.tran@icloud.com',
-      picture: createAvatarSvgDataUri('Tran Minh Quan', 0),
-      consented: true,
-    },
-  ],
-  linkedin: [
-    {
-      sub: 'li_member_98412045',
-      name: 'Trần Minh Quân',
-      identifier: 'minhquan.tran@linkedin.com',
-      picture: createAvatarSvgDataUri('Tran Minh Quan', 3),
-      consented: true,
-    },
-  ],
-  phone: [
-    {
-      sub: 'vn_phone_0912345678',
-      name: 'Trần Minh Quân',
-      identifier: '0912345678',
-      picture: createAvatarSvgDataUri('Tran Minh Quan', 2),
-      consented: true,
-    },
-  ],
-};
 
 const GoogleLogoSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
@@ -215,18 +165,7 @@ const LinkedInLogoSvg: React.FC<{ size?: number }> = ({ size = 18 }) => (
   </svg>
 );
 
-/**
- * Các bước tuần tự chuẩn của luồng xác thực Google Identity Services / OAuth 2.0 (Bước 5 Codelab):
- * 1. account_chooser : Chọn tài khoản đang đăng nhập hoặc bấm "Sử dụng một tài khoản khác"
- * 2. enter_identifier: Nhập Email hoặc Số điện thoại -> Bấm "Tiếp theo"
- * 3. enter_secret    : Nhập Mật khẩu (hoặc mã OTP 6 số cho SĐT) -> Bấm "Tiếp theo"
- * 4. consent_prompt  : Lời nhắc đồng ý chia sẻ thông tin nếu đăng nhập lần đầu -> Phản hồi JWT ID Token
- */
-type OAuthFlowStage =
-  | 'account_chooser'
-  | 'enter_identifier'
-  | 'enter_secret'
-  | 'consent_prompt';
+type OAuthStage = 'account_chooser' | 'add_or_connect_account' | 'verify_secret';
 
 export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
   mode,
@@ -236,19 +175,26 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
   const navigate = useNavigate();
 
   const [activeProvider, setActiveProvider] = useState<AuthProviderType | null>(null);
-  const [stage, setStage] = useState<OAuthFlowStage>('account_chooser');
+  const [stage, setStage] = useState<OAuthStage>('account_chooser');
   const [isProcessingJwt, setIsProcessingJwt] = useState<boolean>(false);
-  const [selectedAcc, setSelectedAcc] = useState<IOAuthAccountItem | null>(null);
 
-  // State cho bước "Sử dụng một tài khoản khác" (Tuần tự: Nhập Email/SĐT -> Nhập Mật khẩu/OTP)
+  // Danh sách tài khoản mạng xã hội DO CHÍNH NGƯỜI DÙNG ĐÃ THÊM vào dữ liệu (Không dùng tài khoản mẫu có sẵn)
+  const [userSavedAccounts, setUserSavedAccounts] = useState<IUserSavedSocialAccount[]>([]);
+
+  // Form kết nối & thêm tài khoản của người dùng vào dữ liệu
   const [identifierInput, setIdentifierInput] = useState<string>('');
-  const [nameInput, setNameInput] = useState<string>('');
+  const [fullNameInput, setFullNameInput] = useState<string>('');
+  const [companyInput, setCompanyInput] = useState<string>('NexusCRM Enterprise VN');
+  const [roleTitleInput, setRoleTitleInput] = useState<string>('Quản trị viên Doanh nghiệp');
   const [secretInput, setSecretInput] = useState<string>('');
   const [showSecret, setShowSecret] = useState<boolean>(false);
   const [smsOtpGenerated, setSmsOtpGenerated] = useState<string | null>(null);
+  const [matchedExistingAccount, setMatchedExistingAccount] = useState<IStoredAccount | null>(
+    null
+  );
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
-  // Nạp thư viện nền tảng Google Identity Services (https://accounts.google.com/gsi/client) như Bước 2 Codelab
   useEffect(() => {
     const scriptId = 'google-gsi-client-script';
     if (!document.getElementById(scriptId)) {
@@ -261,50 +207,140 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
     }
   }, []);
 
-  // Danh sách tài khoản hiển thị trong "Chọn tài khoản"
-  const accountChooserList = useMemo<IOAuthAccountItem[]>(() => {
-    if (!activeProvider) return [];
-    const defaults = [...INITIAL_PROVIDER_ACCOUNTS[activeProvider]];
+  /**
+   * Đọc danh sách tài khoản của chính người dùng từ dữ liệu (localStorage REGISTERED_USERS).
+   * Tuyệt đối KHÔNG dùng bất kỳ tài khoản ảo có sẵn nào.
+   */
+  const loadAccountsFromDataStore = useCallback((provider: AuthProviderType | null): void => {
+    if (!provider) {
+      setUserSavedAccounts([]);
+      return;
+    }
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
-    if (!raw) return defaults;
-
+    if (!raw) {
+      setUserSavedAccounts([]);
+      return;
+    }
     try {
       const stored = JSON.parse(raw) as IStoredAccount[];
-      const fromStorage = stored
-        .filter((item) => item.user.id.includes(`usr-${activeProvider}`))
-        .map((item): IOAuthAccountItem => ({
+      const filtered = stored
+        .filter((item) => item.user.id.includes(`usr-${provider}`))
+        .map((item): IUserSavedSocialAccount => ({
           sub: item.user.id,
           name: item.user.fullName,
           identifier:
-            activeProvider === 'phone'
+            provider === 'phone'
               ? item.email.replace('@phone.nexuscrm.vn', '')
               : item.email,
           picture: item.user.avatarUrl,
-          consented: true,
+          companyName: item.user.workspaceName,
+          roleTitle: item.user.title,
         }));
-
-      const combined = [...fromStorage];
-      defaults.forEach((d) => {
-        if (!combined.some((c) => c.identifier.toLowerCase() === d.identifier.toLowerCase())) {
-          combined.push(d);
-        }
-      });
-      return combined;
+      setUserSavedAccounts(filtered);
     } catch {
-      return defaults;
+      setUserSavedAccounts([]);
     }
-  }, [activeProvider]);
+  }, []);
 
   /**
-   * Hàm callback handleCredentialResponse nhận mã thông báo JWT ID từ nhà cung cấp,
-   * giải mã bằng decodeJWT và đăng nhập phiên người dùng (Đúng theo Bước 2 & Bước 5 Codelab)
+   * Lưu trực tiếp tài khoản mạng xã hội / SĐT của người dùng vào cơ sở dữ liệu (AUTH_STORAGE_KEYS.REGISTERED_USERS)
    */
-  const handleCredentialResponse = async (response: ICredentialResponse): Promise<void> => {
+  const persistAccountToDataStore = (
+    provider: AuthProviderType,
+    identifier: string,
+    fullName: string,
+    passwordOrToken: string,
+    companyName: string,
+    roleTitle: string
+  ): IStoredAccount => {
+    const normalizedEmail =
+      provider === 'phone'
+        ? `${normalizeVietnamPhone(identifier)}@phone.nexuscrm.vn`
+        : identifier.trim().toLowerCase();
+
+    const colorIdxMap: Record<AuthProviderType, number> = {
+      google: 1,
+      apple: 0,
+      linkedin: 3,
+      phone: 2,
+    };
+
+    const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
+    const list: IStoredAccount[] = raw ? (JSON.parse(raw) as IStoredAccount[]) : [];
+
+    const existingIdx = list.findIndex(
+      (item) => item.email.toLowerCase() === normalizedEmail
+    );
+
+    const userObj: IUser = {
+      id:
+        existingIdx >= 0
+          ? list[existingIdx].user.id
+          : `usr-${provider}-${Date.now()}`,
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      role: 'Super Admin',
+      title: roleTitle.trim() || `Tài khoản ${provider.toUpperCase()}`,
+      department: 'Ban Điều Hành & Kinh Doanh',
+      avatarUrl: createAvatarSvgDataUri(fullName.trim(), colorIdxMap[provider]),
+      workspaceName: companyName.trim() || 'NexusCRM Enterprise VN',
+    };
+
+    const storedRecord: IStoredAccount = {
+      email: normalizedEmail,
+      password: passwordOrToken,
+      user: userObj,
+    };
+
+    if (existingIdx >= 0) {
+      list[existingIdx] = storedRecord;
+    } else {
+      list.push(storedRecord);
+    }
+
+    window.localStorage.setItem(AUTH_STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(list));
+    loadAccountsFromDataStore(provider);
+    return storedRecord;
+  };
+
+  /**
+   * Xóa một tài khoản khỏi danh sách lưu trữ nếu người dùng muốn gỡ bỏ
+   */
+  const handleRemoveSavedAccount = (identifier: string): void => {
+    if (!activeProvider) return;
+    const targetEmail =
+      activeProvider === 'phone'
+        ? `${normalizeVietnamPhone(identifier)}@phone.nexuscrm.vn`
+        : identifier.toLowerCase();
+
+    const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
+    if (!raw) return;
+    try {
+      const list = JSON.parse(raw) as IStoredAccount[];
+      const nextList = list.filter((item) => item.email.toLowerCase() !== targetEmail);
+      window.localStorage.setItem(
+        AUTH_STORAGE_KEYS.REGISTERED_USERS,
+        JSON.stringify(nextList)
+      );
+      loadAccountsFromDataStore(activeProvider);
+    } catch {
+      // ignore
+    }
+  };
+
+  /**
+   * Hàm callback handleCredentialResponse nhận JWT ID Token, giải mã bằng decodeJWT
+   * và đăng nhập người dùng vào hệ thống (Đúng theo Bước 2 & Bước 6 Google Codelab)
+   */
+  const handleCredentialResponse = async (
+    response: ICredentialResponse,
+    companyName?: string,
+    roleTitle?: string
+  ): Promise<void> => {
     setIsProcessingJwt(true);
     try {
       const responsePayload = decodeJWT(response.credential);
 
-      // Ghi nhật ký JWT và các trường đã giải mã vào Bảng điều khiển (giống hệt Bước 2 & 6 Codelab)
       console.info('Encoded JWT ID token: ' + response.credential);
       console.info('Decoded JWT ID token fields:', {
         fullName: responsePayload.name,
@@ -313,7 +349,6 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
         uniqueSubId: responsePayload.sub,
         profilePicture: responsePayload.picture,
         email: responsePayload.email,
-        issuer: responsePayload.iss,
       });
 
       if (response.provider === 'phone') {
@@ -329,6 +364,8 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           provider: response.provider,
           email: responsePayload.email,
           fullName: responsePayload.name,
+          companyName,
+          roleTitle,
         });
       }
 
@@ -341,212 +378,234 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
     }
   };
 
-  const handleStartOAuth = (provider: AuthProviderType): void => {
+  const handleOpenProvider = (provider: AuthProviderType): void => {
     setActiveProvider(provider);
+    loadAccountsFromDataStore(provider);
     setStage('account_chooser');
-    setSelectedAcc(null);
     setIdentifierInput('');
-    setNameInput('');
+    setFullNameInput('');
+    setCompanyInput('NexusCRM Enterprise VN');
+    setRoleTitleInput('Quản trị viên Doanh nghiệp');
     setSecretInput('');
     setShowSecret(false);
     setSmsOtpGenerated(null);
+    setMatchedExistingAccount(null);
     setFieldError(null);
+    setStatusNotice(null);
   };
 
   const handleCloseOAuth = (): void => {
     if (isProcessingJwt) return;
     setActiveProvider(null);
     setFieldError(null);
+    setStatusNotice(null);
   };
 
   /**
-   * Bước 5 Codelab:
-   * - Khi chọn một tài khoản đã cấp quyền (consented = true) -> Phát hành ngay JWT ID Token & vào thẳng.
-   * - Khi chọn tài khoản đăng nhập lần đầu (consented = false) -> Hiện lời nhắc đồng ý (consent_prompt).
+   * Khi người dùng nhấn vào tài khoản của chính họ trong "Chọn một tài khoản" -> Cấp JWT & đăng nhập ngay
    */
-  const handleChooseAccount = async (account: IOAuthAccountItem): Promise<void> => {
+  const handleSelectSavedAccount = async (account: IUserSavedSocialAccount): Promise<void> => {
     if (!activeProvider) return;
-    setSelectedAcc(account);
     setFieldError(null);
 
-    if (account.consented) {
-      const emailClaim =
-        activeProvider === 'phone'
-          ? `${normalizeVietnamPhone(account.identifier)}@phone.nexuscrm.vn`
-          : account.identifier;
+    const emailClaim =
+      activeProvider === 'phone'
+        ? `${normalizeVietnamPhone(account.identifier)}@phone.nexuscrm.vn`
+        : account.identifier;
 
-      const jwtToken = createOidcIdToken({
-        provider: activeProvider,
-        sub: account.sub,
-        email: emailClaim,
-        name: account.name,
-        picture: account.picture,
-      });
+    const jwtToken = createOidcIdToken({
+      provider: activeProvider,
+      sub: account.sub,
+      email: emailClaim,
+      name: account.name,
+      picture: account.picture,
+    });
 
-      await handleCredentialResponse({
+    await handleCredentialResponse(
+      {
         credential: jwtToken,
         select_by: 'user',
         provider: activeProvider,
-      });
-    } else {
-      setStage('consent_prompt');
-    }
+      },
+      account.companyName,
+      account.roleTitle
+    );
   };
 
   /**
-   * Bước 1 của "Sử dụng một tài khoản khác": Kiểm tra Email / Số điện thoại rồi bấm "Tiếp theo"
+   * Bước 1 trong mục "Sử dụng một tài khoản / số điện thoại khác":
+   * Kết nối tới dữ liệu để kiểm tra tài khoản đã có hay thêm mới, sau đó chuyển sang xác thực mật khẩu / OTP
    */
-  const handleIdentifierNext = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleConnectAccountStep1 = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     if (!activeProvider) return;
     setFieldError(null);
+    setStatusNotice(null);
 
-    const raw = identifierInput.trim();
-    if (!raw) {
+    const rawId = identifierInput.trim();
+    if (!rawId) {
       setFieldError(
         activeProvider === 'phone'
-          ? 'Hãy nhập số điện thoại di động của bạn.'
-          : 'Hãy nhập một địa chỉ email hợp lệ.'
+          ? 'Vui lòng nhập số điện thoại di động của bạn.'
+          : 'Vui lòng nhập địa chỉ email tài khoản của bạn.'
       );
       return;
     }
 
     if (activeProvider === 'phone') {
-      if (!isValidVietnamPhone(raw)) {
-        setFieldError('Số điện thoại không hợp lệ (gồm 10 chữ số, đầu 03, 05, 07, 08, 09).');
-        return;
-      }
-      try {
-        const res = await sendPhoneOtp(raw);
-        setSmsOtpGenerated(res.otpCode);
-        setSecretInput('');
-        if (res.existingUser) {
-          setNameInput(res.existingUser.fullName);
-        }
-        setStage('enter_secret');
-      } catch {
-        setFieldError('Không thể gửi mã xác minh SMS tới số điện thoại này.');
-      }
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(raw)) {
-      setFieldError('Không tìm thấy tài khoản của bạn. Hãy kiểm tra lại định dạng email.');
-      return;
-    }
-
-    if (activeProvider === 'google' && !raw.toLowerCase().endsWith('@gmail.com') && !raw.includes('.')) {
-      setFieldError('Không tìm thấy Tài khoản Google của bạn.');
-      return;
-    }
-
-    // Tự động nhận diện tên nếu tài khoản đã từng lưu trong localStorage
-    const storedRaw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
-    if (storedRaw) {
-      try {
-        const list = JSON.parse(storedRaw) as IStoredAccount[];
-        const found = list.find((a) => a.email.toLowerCase() === raw.toLowerCase());
-        if (found) {
-          setNameInput(found.user.fullName);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    setStage('enter_secret');
-  };
-
-  /**
-   * Bước 2 của "Sử dụng một tài khoản khác": Xác minh Mật khẩu hoặc Mã OTP -> Chuyển sang Lời nhắc đồng ý
-   */
-  const handleSecretNext = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    if (!activeProvider) return;
-    setFieldError(null);
-
-    const cleanId = identifierInput.trim().toLowerCase();
-
-    if (activeProvider === 'phone') {
-      if (!smsOtpGenerated || secretInput.trim() !== smsOtpGenerated) {
-        setFieldError('Mã xác minh OTP không chính xác. Hãy kiểm tra lại tin nhắn SMS.');
+      if (!isValidVietnamPhone(rawId)) {
+        setFieldError('Số điện thoại không hợp lệ (phải gồm 10 chữ số, đầu 03, 05, 07, 08, 09).');
         return;
       }
     } else {
-      if (secretInput.length < 6) {
-        setFieldError('Mật khẩu không chính xác. Hãy thử lại (tối thiểu 6 ký tự).');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(rawId)) {
+        setFieldError('Địa chỉ email không đúng định dạng.');
         return;
       }
-
-      // Nếu tài khoản đã lưu trước đó, kiểm tra khớp mật khẩu
-      const storedRaw = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
-      if (storedRaw) {
-        try {
-          const list = JSON.parse(storedRaw) as IStoredAccount[];
-          const existing = list.find((a) => a.email.toLowerCase() === cleanId);
-          if (
-            existing &&
-            !existing.password.startsWith('oauth_') &&
-            existing.password !== secretInput
-          ) {
-            setFieldError('Mật khẩu không chính xác. Hãy thử lại hoặc chọn Quên mật khẩu.');
-            return;
-          }
-        } catch {
-          // ignore
-        }
+      if (
+        activeProvider === 'google' &&
+        !rawId.toLowerCase().endsWith('@gmail.com') &&
+        !rawId.toLowerCase().endsWith('.vn')
+      ) {
+        setFieldError('Tài khoản Google phải sử dụng địa chỉ @gmail.com hoặc Google Workspace.');
+        return;
       }
     }
 
-    const resolvedName =
-      nameInput.trim() ||
-      (activeProvider === 'phone'
-        ? `Người dùng (${normalizeVietnamPhone(cleanId).slice(-4)})`
-        : cleanId
-            .split('@')[0]
-            .replace(/[._-]/g, ' ')
-            .replace(/\b\w/g, (c) => c.toUpperCase()));
+    // Tra cứu trong cơ sở dữ liệu (localStorage REGISTERED_USERS)
+    const lookupEmail =
+      activeProvider === 'phone'
+        ? `${normalizeVietnamPhone(rawId)}@phone.nexuscrm.vn`
+        : rawId.toLowerCase();
 
-    const newAcc: IOAuthAccountItem = {
-      sub: `sub_${activeProvider}_${Date.now()}`,
-      name: resolvedName,
-      identifier: activeProvider === 'phone' ? normalizeVietnamPhone(cleanId) : cleanId,
-      picture: createAvatarSvgDataUri(resolvedName, 1),
-      consented: false,
-    };
+    const rawStored = window.localStorage.getItem(AUTH_STORAGE_KEYS.REGISTERED_USERS);
+    const list: IStoredAccount[] = rawStored ? (JSON.parse(rawStored) as IStoredAccount[]) : [];
+    const found = list.find((a) => a.email.toLowerCase() === lookupEmail) ?? null;
 
-    setSelectedAcc(newAcc);
-    setStage('consent_prompt');
+    setMatchedExistingAccount(found);
+
+    if (found) {
+      setFullNameInput(found.user.fullName);
+      setCompanyInput(found.user.workspaceName);
+      setRoleTitleInput(found.user.title);
+      setStatusNotice(
+        `Đã tìm thấy tài khoản "${found.user.fullName}" trong dữ liệu. Vui lòng xác thực để tiếp tục.`
+      );
+    } else {
+      if (fullNameInput.trim().length < 2) {
+        setFieldError('Vui lòng nhập Họ và tên của bạn để liên kết tài khoản mới vào dữ liệu.');
+        return;
+      }
+      setStatusNotice(
+        `Đang khởi tạo liên kết dữ liệu mới cho tài khoản "${fullNameInput.trim()}".`
+      );
+    }
+
+    if (activeProvider === 'phone') {
+      try {
+        const res = await sendPhoneOtp(rawId);
+        setSmsOtpGenerated(res.otpCode);
+        setSecretInput('');
+      } catch {
+        setFieldError('Không thể gửi mã OTP tới số điện thoại này.');
+        return;
+      }
+    }
+
+    setStage('verify_secret');
   };
 
   /**
-   * Bước 3: Người dùng nhấn "Tiếp tục" trên lời nhắc đồng ý (Consent Prompt) -> Nhận JWT ID Token
+   * Bước 2: Xác thực mật khẩu / OTP, lưu tài khoản của người dùng vào dữ liệu hệ thống,
+   * và cho phép: (1) Lưu vào danh sách Chọn tài khoản, hoặc (2) Kết nối & Đăng nhập ngay!
    */
-  const handleConsentContinue = async (): Promise<void> => {
-    if (!activeProvider || !selectedAcc) return;
+  const verifyAndSaveAccount = (): IStoredAccount | null => {
+    if (!activeProvider) return null;
+    setFieldError(null);
 
-    const emailClaim =
-      activeProvider === 'phone'
-        ? `${normalizeVietnamPhone(selectedAcc.identifier)}@phone.nexuscrm.vn`
-        : selectedAcc.identifier;
+    const rawId = identifierInput.trim();
+
+    if (activeProvider === 'phone') {
+      if (!smsOtpGenerated || secretInput.trim() !== smsOtpGenerated) {
+        setFieldError('Mã xác minh OTP không chính xác. Vui lòng kiểm tra lại.');
+        return null;
+      }
+    } else {
+      if (secretInput.length < 6) {
+        setFieldError('Mật khẩu tài khoản phải có tối thiểu 6 ký tự.');
+        return null;
+      }
+
+      if (
+        matchedExistingAccount &&
+        !matchedExistingAccount.password.startsWith('oauth_') &&
+        matchedExistingAccount.password !== secretInput
+      ) {
+        setFieldError('Mật khẩu không chính xác với tài khoản đã lưu trong dữ liệu.');
+        return null;
+      }
+    }
+
+    const finalName =
+      fullNameInput.trim() ||
+      matchedExistingAccount?.user.fullName ||
+      rawId.split('@')[0];
+
+    return persistAccountToDataStore(
+      activeProvider,
+      rawId,
+      finalName,
+      secretInput,
+      companyInput,
+      roleTitleInput
+    );
+  };
+
+  /**
+   * Nút 1: Lưu tài khoản của người dùng vào dữ liệu và hiển thị ngay trong danh sách "Chọn một tài khoản"
+   */
+  const handleSaveToChooserListOnly = (): void => {
+    const saved = verifyAndSaveAccount();
+    if (!saved) return;
+    setStatusNotice(
+      `Đã thêm tài khoản "${saved.user.fullName}" vào dữ liệu thành công! Bạn có thể chọn để đăng nhập.`
+    );
+    setStage('account_chooser');
+  };
+
+  /**
+   * Nút 2: Lưu tài khoản vào dữ liệu, phát hành JWT ID Token và đăng nhập thẳng vào hệ thống
+   */
+  const handleSaveAndLoginImmediately = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
+    e.preventDefault();
+    if (!activeProvider) return;
+    const saved = verifyAndSaveAccount();
+    if (!saved) return;
 
     const jwtToken = createOidcIdToken({
       provider: activeProvider,
-      sub: selectedAcc.sub,
-      email: emailClaim,
-      name: selectedAcc.name,
-      picture: selectedAcc.picture,
+      sub: saved.user.id,
+      email: saved.email,
+      name: saved.user.fullName,
+      picture: saved.user.avatarUrl,
     });
 
-    await handleCredentialResponse({
-      credential: jwtToken,
-      select_by: 'btn',
-      provider: activeProvider,
-    });
+    await handleCredentialResponse(
+      {
+        credential: jwtToken,
+        select_by: 'btn',
+        provider: activeProvider,
+      },
+      saved.user.workspaceName,
+      saved.user.title
+    );
   };
 
-  // Tuỳ chỉnh văn bản nút theo Bước 7 của Google Codelab (signin_with vs signup_with)
   const verbPrefix = mode === 'register' ? 'Đăng ký bằng' : 'Đăng nhập bằng';
   const isSignupBlue = mode === 'register';
 
@@ -555,31 +614,39 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
       case 'google':
         return {
           title: 'Đăng nhập bằng Google',
+          providerLabel: 'Google',
           icon: <GoogleLogoSvg size={18} />,
-          inputLabel: 'Email hoặc số điện thoại Google',
+          inputLabel: 'Địa chỉ Email Google của bạn *',
           placeholder: 'tenban@gmail.com',
+          anotherText: 'Sử dụng một tài khoản Google khác',
         };
       case 'apple':
         return {
           title: 'Đăng nhập bằng Tài khoản Apple',
+          providerLabel: 'Apple ID',
           icon: <AppleLogoSvg size={18} />,
-          inputLabel: 'Apple ID (Email iCloud)',
+          inputLabel: 'Tài khoản Apple ID (iCloud Email) *',
           placeholder: 'tenban@icloud.com',
+          anotherText: 'Sử dụng một tài khoản Apple khác',
         };
       case 'linkedin':
         return {
           title: 'Đăng nhập bằng LinkedIn',
+          providerLabel: 'LinkedIn',
           icon: <LinkedInLogoSvg size={18} />,
-          inputLabel: 'Email đăng nhập LinkedIn',
+          inputLabel: 'Email tài khoản LinkedIn của bạn *',
           placeholder: 'tenban@linkedin.com',
+          anotherText: 'Sử dụng một tài khoản LinkedIn khác',
         };
       case 'phone':
       default:
         return {
           title: 'Xác thực bằng Số điện thoại',
+          providerLabel: 'Số điện thoại',
           icon: <Phone size={17} color="#81C995" />,
-          inputLabel: 'Số điện thoại di động (Việt Nam)',
+          inputLabel: 'Số điện thoại di động của bạn (10 số) *',
           placeholder: '0912345678',
+          anotherText: 'Sử dụng một số điện thoại khác',
         };
     }
   };
@@ -588,7 +655,6 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
 
   return (
     <div className={styles.gsiSection}>
-      {/* Phần tử cấu hình g_id_onload theo chuẩn Google Identity Services (Bước 2 Codelab) */}
       <div
         id="g_id_onload"
         data-auto_prompt="false"
@@ -600,7 +666,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
         <span>HOẶC {mode === 'register' ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP'} VỚI</span>
       </div>
 
-      {/* Lưới 2x2 nút bấm chuẩn Google Codelab Bước 7 (Hỗ trợ theme outline ở Login và filled_blue ở Register) */}
+      {/* Lưới 2x2 nút bấm chuẩn Google Codelab Bước 7 */}
       <div className={styles.gsiGrid}>
         <button
           type="button"
@@ -608,7 +674,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
             isSignupBlue ? styles['gsiButton--filledBlue'] : ''
           }`}
           disabled={disabled || isLoading}
-          onClick={() => handleStartOAuth('google')}
+          onClick={() => handleOpenProvider('google')}
         >
           <span className={styles.gsiButton__iconWrap}>
             <GoogleLogoSvg size={16} />
@@ -620,7 +686,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           type="button"
           className={styles.gsiButton}
           disabled={disabled || isLoading}
-          onClick={() => handleStartOAuth('apple')}
+          onClick={() => handleOpenProvider('apple')}
         >
           <span className={styles.gsiButton__iconWrap}>
             <AppleLogoSvg size={17} />
@@ -632,7 +698,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           type="button"
           className={styles.gsiButton}
           disabled={disabled || isLoading}
-          onClick={() => handleStartOAuth('linkedin')}
+          onClick={() => handleOpenProvider('linkedin')}
         >
           <span className={styles.gsiButton__iconWrap}>
             <LinkedInLogoSvg size={17} />
@@ -644,7 +710,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           type="button"
           className={styles.gsiButton}
           disabled={disabled || isLoading}
-          onClick={() => handleStartOAuth('phone')}
+          onClick={() => handleOpenProvider('phone')}
         >
           <span className={styles.gsiButton__iconWrap} style={{ color: '#059669' }}>
             <Phone size={16} />
@@ -653,7 +719,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
         </button>
       </div>
 
-      {/* Hộp thoại Xác thực OAuth 2.0 & Phản hồi JWT ID Token (Đúng theo Bước 5 & 6 Codelab) */}
+      {/* Cửa sổ OAuth kết nối dữ liệu thực tế của người dùng */}
       <AnimatePresence>
         {activeProvider !== null && (
           <div
@@ -691,7 +757,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
               </div>
 
               <div className={styles.oauthContent}>
-                {/* GIAI ĐOẠN 1: CHỌN TÀI KHOẢN (Account Chooser - Bước 5 Codelab) */}
+                {/* MÀN HÌNH 1: CHỌN MỘT TÀI KHOẢN (Chỉ hiển thị các tài khoản do chính người dùng đã thêm vào dữ liệu) */}
                 {stage === 'account_chooser' && (
                   <>
                     <div className={styles.appIdentity}>
@@ -706,36 +772,62 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                       </p>
                     </div>
 
-                    <div className={styles.chooserList}>
-                      {accountChooserList.map((acc) => (
-                        <button
-                          key={acc.sub}
-                          type="button"
-                          className={styles.chooserItem}
-                          disabled={isProcessingJwt}
-                          onClick={() => void handleChooseAccount(acc)}
-                        >
-                          <img
-                            src={acc.picture}
-                            alt={acc.name}
-                            className={styles.chooserItem__avatar}
-                          />
-                          <div className={styles.chooserItem__text}>
-                            <span className={styles.chooserItem__name}>{acc.name}</span>
-                            <span className={styles.chooserItem__email}>
-                              {acc.identifier}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
+                    {statusNotice && (
+                      <div className={styles.dbStatusBadge}>
+                        <CheckCircle2 size={14} style={{ flexShrink: 0 }} />
+                        <span>{statusNotice}</span>
+                      </div>
+                    )}
 
+                    <div className={styles.chooserList}>
+                      {userSavedAccounts.length === 0 ? (
+                        <div className={styles.emptyAccountsHint}>
+                          Chưa có tài khoản {providerInfo.providerLabel} nào được kết nối trên
+                          trình duyệt này. Hãy nhấn vào mục bên dưới để thêm tài khoản của bạn
+                          vào dữ liệu hệ thống.
+                        </div>
+                      ) : (
+                        userSavedAccounts.map((acc) => (
+                          <div key={acc.sub} className={styles.chooserRowWrap}>
+                            <button
+                              type="button"
+                              className={styles.chooserItem}
+                              disabled={isProcessingJwt}
+                              onClick={() => void handleSelectSavedAccount(acc)}
+                            >
+                              <img
+                                src={acc.picture}
+                                alt={acc.name}
+                                className={styles.chooserItem__avatar}
+                              />
+                              <div className={styles.chooserItem__text}>
+                                <span className={styles.chooserItem__name}>{acc.name}</span>
+                                <span className={styles.chooserItem__email}>
+                                  {acc.identifier}
+                                </span>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.removeAccBtn}
+                              title="Gỡ tài khoản này khỏi danh sách"
+                              onClick={() => handleRemoveSavedAccount(acc.identifier)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+
+                      {/* Nút "Sử dụng một tài khoản / số điện thoại khác" -> Mở form kết nối & thêm tài khoản vào dữ liệu */}
                       <button
                         type="button"
                         className={styles.chooserItem}
                         disabled={isProcessingJwt}
                         onClick={() => {
                           setFieldError(null);
-                          setStage('enter_identifier');
+                          setStatusNotice(null);
+                          setStage('add_or_connect_account');
                         }}
                       >
                         <span className={styles.chooserItem__iconCircle}>
@@ -743,9 +835,10 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                         </span>
                         <div className={styles.chooserItem__text}>
                           <span className={styles.chooserItem__name}>
-                            {activeProvider === 'phone'
-                              ? 'Sử dụng một số điện thoại khác'
-                              : 'Sử dụng một tài khoản khác'}
+                            {providerInfo.anotherText}
+                          </span>
+                          <span className={styles.chooserItem__email}>
+                            Kết nối dữ liệu & thêm tài khoản {providerInfo.providerLabel} của bạn
                           </span>
                         </div>
                       </button>
@@ -758,10 +851,10 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                   </>
                 )}
 
-                {/* GIAI ĐOẠN 2: NHẬP EMAIL HOẶC SỐ ĐIỆN THOẠI */}
-                {stage === 'enter_identifier' && (
+                {/* MÀN HÌNH 2: FORM KẾT NỐI ĐẾN DỮ LIỆU & THÊM TÀI KHOẢN CỦA NGƯỜI DÙNG */}
+                {stage === 'add_or_connect_account' && (
                   <form
-                    onSubmit={(e) => void handleIdentifierNext(e)}
+                    onSubmit={(e) => void handleConnectAccountStep1(e)}
                     className={styles.stepForm}
                     noValidate
                   >
@@ -771,16 +864,19 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                         alt="NexusCRM"
                         className={styles.appIdentity__logo}
                       />
-                      <h2 className={styles.appIdentity__title}>Đăng nhập</h2>
+                      <h2 className={styles.appIdentity__title}>
+                        Kết nối tài khoản {providerInfo.providerLabel}
+                      </h2>
                       <p className={styles.appIdentity__subtitle}>
-                        Tiếp tục tới <strong>NexusCRM</strong>
+                        Đăng nhập hoặc đăng ký tài khoản {providerInfo.providerLabel} của bạn vào
+                        dữ liệu <strong>NexusCRM</strong>
                       </p>
                     </div>
 
                     <div className={styles.outlinedField}>
-                      <label htmlFor="gsi-identifier-input">{providerInfo.inputLabel}</label>
+                      <label htmlFor="oauth-user-identifier">{providerInfo.inputLabel}</label>
                       <input
-                        id="gsi-identifier-input"
+                        id="oauth-user-identifier"
                         type={activeProvider === 'phone' ? 'tel' : 'email'}
                         className={styles.outlinedInput}
                         value={identifierInput}
@@ -791,25 +887,55 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                         placeholder={providerInfo.placeholder}
                         autoFocus
                       />
-                      {fieldError && (
-                        <div className={styles.fieldError} role="alert">
-                          <AlertCircle size={14} />
-                          <span>{fieldError}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className={styles.outlinedField}>
-                      <label htmlFor="gsi-name-input">Tên hiển thị trên hồ sơ (tuỳ chọn)</label>
+                      <label htmlFor="oauth-user-fullname">Họ và tên chủ tài khoản *</label>
                       <input
-                        id="gsi-name-input"
+                        id="oauth-user-fullname"
                         type="text"
                         className={styles.outlinedInput}
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        placeholder="VD: Nguyễn Minh Khôi"
+                        value={fullNameInput}
+                        onChange={(e) => {
+                          setFullNameInput(e.target.value);
+                          setFieldError(null);
+                        }}
+                        placeholder="Nhập họ và tên thật của bạn"
                       />
                     </div>
+
+                    <div className={styles.formGrid2}>
+                      <div className={styles.outlinedField}>
+                        <label htmlFor="oauth-user-company">Công ty / Tổ chức</label>
+                        <input
+                          id="oauth-user-company"
+                          type="text"
+                          className={styles.outlinedInput}
+                          value={companyInput}
+                          onChange={(e) => setCompanyInput(e.target.value)}
+                          placeholder="Tên doanh nghiệp"
+                        />
+                      </div>
+
+                      <div className={styles.outlinedField}>
+                        <label htmlFor="oauth-user-role">Chức danh</label>
+                        <input
+                          id="oauth-user-role"
+                          type="text"
+                          className={styles.outlinedInput}
+                          value={roleTitleInput}
+                          onChange={(e) => setRoleTitleInput(e.target.value)}
+                          placeholder="Chức vụ của bạn"
+                        />
+                      </div>
+                    </div>
+
+                    {fieldError && (
+                      <div className={styles.fieldError} role="alert">
+                        <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                        <span>{fieldError}</span>
+                      </div>
+                    )}
 
                     <div className={styles.actionRow}>
                       <button
@@ -833,27 +959,42 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                   </form>
                 )}
 
-                {/* GIAI ĐOẠN 3: NHẬP MẬT KHẨU HOẶC MÃ XÁC MINH OTP */}
-                {stage === 'enter_secret' && (
-                  <form onSubmit={handleSecretNext} className={styles.stepForm} noValidate>
+                {/* MÀN HÌNH 3: XÁC MINH MẬT KHẨU / OTP -> LƯU VÀO DỮ LIỆU HOẶC ĐĂNG NHẬP NGAY */}
+                {stage === 'verify_secret' && (
+                  <form
+                    onSubmit={(e) => void handleSaveAndLoginImmediately(e)}
+                    className={styles.stepForm}
+                    noValidate
+                  >
                     <div className={styles.appIdentity}>
-                      <h2 className={styles.appIdentity__title}>Chào mừng bạn</h2>
+                      <h2 className={styles.appIdentity__title}>
+                        Xác nhận liên kết dữ liệu
+                      </h2>
                       <button
                         type="button"
                         className={styles.userChip}
                         onClick={() => {
                           setFieldError(null);
-                          setStage('enter_identifier');
+                          setStage('add_or_connect_account');
                         }}
                       >
                         <img
-                          src={createAvatarSvgDataUri(nameInput || identifierInput, 1)}
+                          src={createAvatarSvgDataUri(fullNameInput || identifierInput, 1)}
                           alt=""
                           className={styles.userChip__avatar}
                         />
-                        <span>{identifierInput}</span>
+                        <span>
+                          {fullNameInput} ({identifierInput})
+                        </span>
                       </button>
                     </div>
+
+                    {statusNotice && (
+                      <div className={styles.dbStatusBadge}>
+                        <Database size={14} style={{ flexShrink: 0 }} />
+                        <span>{statusNotice}</span>
+                      </div>
+                    )}
 
                     {activeProvider === 'phone' && smsOtpGenerated && (
                       <div className={styles.smsHintBox}>
@@ -862,7 +1003,8 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                             size={13}
                             style={{ display: 'inline', marginRight: 5, color: '#81C995' }}
                           />
-                          Mã SMS OTP gửi tới máy bạn: <strong>{smsOtpGenerated}</strong>
+                          Mã SMS OTP gửi tới {normalizeVietnamPhone(identifierInput)}:{' '}
+                          <strong>{smsOtpGenerated}</strong>
                         </span>
                         <button
                           type="button"
@@ -878,14 +1020,14 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                     )}
 
                     <div className={styles.outlinedField}>
-                      <label htmlFor="gsi-secret-input">
+                      <label htmlFor="oauth-user-secret">
                         {activeProvider === 'phone'
-                          ? 'Nhập mã xác minh 6 chữ số'
-                          : 'Nhập mật khẩu của bạn'}
+                          ? 'Nhập mã xác thực OTP (6 chữ số) *'
+                          : `Mật khẩu tài khoản ${providerInfo.providerLabel} (tối thiểu 6 ký tự) *`}
                       </label>
                       <div className={styles.outlinedInputWrap}>
                         <input
-                          id="gsi-secret-input"
+                          id="oauth-user-secret"
                           type={
                             activeProvider === 'phone'
                               ? 'text'
@@ -900,7 +1042,9 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                             setFieldError(null);
                           }}
                           placeholder={
-                            activeProvider === 'phone' ? '6 chữ số OTP' : '••••••••'
+                            activeProvider === 'phone'
+                              ? 'Nhập 6 chữ số OTP'
+                              : 'Nhập mật khẩu để lưu & xác thực'
                           }
                           autoFocus
                         />
@@ -918,7 +1062,7 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                       </div>
                       {fieldError && (
                         <div className={styles.fieldError} role="alert">
-                          <AlertCircle size={14} />
+                          <AlertCircle size={14} style={{ flexShrink: 0 }} />
                           <span>{fieldError}</span>
                         </div>
                       )}
@@ -930,66 +1074,31 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
                         className={styles.ghostBtn}
                         onClick={() => {
                           setFieldError(null);
-                          setStage('enter_identifier');
+                          setStage('add_or_connect_account');
                         }}
                       >
-                        Thử cách khác
+                        Quay lại
                       </button>
-                      <button type="submit" className={styles.primaryBtn}>
-                        Tiếp theo
-                      </button>
-                    </div>
-                  </form>
-                )}
 
-                {/* GIAI ĐOẠN 4: LỜI NHẮC ĐỒNG Ý (OAuth Consent Prompt - Bước 5 Codelab) */}
-                {stage === 'consent_prompt' && selectedAcc && (
-                  <>
-                    <div className={styles.appIdentity}>
-                      <img
-                        src={logoUrl}
-                        alt="NexusCRM"
-                        className={styles.appIdentity__logo}
-                      />
-                      <h2 className={styles.appIdentity__title}>
-                        Đăng nhập vào NexusCRM
-                      </h2>
-                      <div className={styles.userChip}>
-                        <img
-                          src={selectedAcc.picture}
-                          alt={selectedAcc.name}
-                          className={styles.userChip__avatar}
-                        />
-                        <span>{selectedAcc.identifier}</span>
+                      <div className={styles.actionRowRight}>
+                        <button
+                          type="button"
+                          className={styles.secondaryBtn}
+                          disabled={isProcessingJwt || isLoading}
+                          onClick={handleSaveToChooserListOnly}
+                        >
+                          Lưu vào danh sách
+                        </button>
+                        <button
+                          type="submit"
+                          className={styles.primaryBtn}
+                          disabled={isProcessingJwt || isLoading}
+                        >
+                          {isProcessingJwt ? 'Đang kết nối...' : 'Kết nối & Đăng nhập'}
+                        </button>
                       </div>
                     </div>
-
-                    <p className={styles.policyCopy}>
-                      Khi bạn nhấp vào <strong>Tiếp tục</strong>, nhà cung cấp xác thực sẽ cấp
-                      một <span>Mã thông báo nhận dạng JWT (ID Token)</span> chứa tên (
-                      <strong>{selectedAcc.name}</strong>), ảnh hồ sơ và địa chỉ định danh của
-                      bạn cho ứng dụng <span>NexusCRM</span>.
-                    </p>
-
-                    <div className={styles.actionRow}>
-                      <button
-                        type="button"
-                        className={styles.ghostBtn}
-                        disabled={isProcessingJwt}
-                        onClick={() => setStage('account_chooser')}
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.primaryBtn}
-                        disabled={isProcessingJwt}
-                        onClick={() => void handleConsentContinue()}
-                      >
-                        {isProcessingJwt ? 'Đang cấp JWT...' : 'Tiếp tục'}
-                      </button>
-                    </div>
-                  </>
+                  </form>
                 )}
               </div>
             </motion.div>

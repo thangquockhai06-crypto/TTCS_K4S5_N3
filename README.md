@@ -28,11 +28,15 @@ npm run typecheck
 npm run build
 ```
 
-### 3. Tài khoản Quản trị viên (Admin) mặc định để đăng nhập
+### 3. Tài khoản Quản trị viên (Admin) mặc định & Đăng nhập Đa phương thức
 - **Tên hiển thị:** `Quản Trị Viên Hệ Thống`
 - **Email:** `admin@nexuscrm.vn`
 - **Mật khẩu:** `Admin@2026`
-- Ngoài ra, có thể tạo tài khoản mới trực tiếp tại trang **Đăng ký (`/register`)**.
+- **Đăng ký tài khoản mới:** Tạo tài khoản trực tiếp tại trang **Đăng ký (`/register`)**.
+- **Đăng nhập / Đăng ký bằng Mạng xã hội & Số điện thoại (OAuth 2.0 / OIDC):**
+  - Hỗ trợ 4 phương thức: **Google cá nhân**, **Apple ID**, **LinkedIn**, và **Số điện thoại (SMS OTP)**.
+  - Thiết kế chuẩn **Google Identity Services (GSI) Account Chooser** (`#g_id_onload`, giải mã JWT ID Token chuẩn OpenID Connect).
+  - Người dùng có thể chọn mục **"Sử dụng một tài khoản ... khác"** để tự thêm/liên kết tài khoản thực tế của mình vào dữ liệu hệ thống (`localStorage`) và đăng nhập nhanh cho các lần tiếp theo (mã OTP thử nghiệm cho Số điện thoại: `123456`).
 
 ---
 
@@ -42,6 +46,7 @@ npm run build
 | :--- | :--- | :--- | :--- |
 | **S1-01** | **Đăng nhập & Đăng ký hệ thống** (Live Validation, khóa 15 phút khi sai 5 lần) | - `src/components/auth/LoginForm.tsx`<br>- `src/components/auth/RegisterForm.tsx`<br>- `src/hooks/useCountdown.ts`<br>- `src/pages/LoginPage.tsx`<br>- `src/pages/RegisterPage.tsx` | Đã hoàn thành |
 | **S1-02** | **Duy trì phiên JWT & Tự động Refresh Token / Đăng xuất** | - `src/utils/axiosInstance.ts`<br>- `src/context/AuthContext.tsx`<br>- `src/hooks/useAuth.ts` | Đã hoàn thành |
+| **S1-03** | **Xác thực OAuth 2.0 / OIDC & Số điện thoại** (Google, Apple, LinkedIn, SMS OTP — Cho phép người dùng tự kết nối & lưu tài khoản vào dữ liệu hệ thống) | - `src/components/auth/SocialPhoneAuthSection.tsx`<br>- `src/components/auth/SocialPhoneAuthSection.module.css`<br>- `src/components/auth/LoginForm.tsx`<br>- `src/components/auth/RegisterForm.tsx` | Đã hoàn thành |
 | **UI-CORE** | **Hệ thống giao diện CRM 100% Tiếng Việt** (Dashboard, 50 Khách hàng, Chi tiết 360°, Thêm khách hàng, Kanban Deal Pipeline, Nhật ký, Báo cáo, Cài đặt) | - `src/components/layout/*`<br>- `src/components/customer/*`<br>- `src/components/dashboard/*`<br>- `src/pages/*` | Đã hoàn thành |
 
 ---
@@ -51,7 +56,7 @@ npm run build
 ```text
 src/
 ├── components/
-│   ├── auth/          # LoginForm, RegisterForm
+│   ├── auth/          # LoginForm, RegisterForm, SocialPhoneAuthSection (OAuth 2.0 / OIDC & SĐT)
 │   ├── common/        # Button, Input, Badge, Avatar, Card, Modal, Drawer, SearchBar, EmptyState
 │   ├── customer/      # CustomerCard, CustomerDetailPanel, DealPipeline
 │   ├── dashboard/     # StatCard, MiniCharts, ActivityFeed

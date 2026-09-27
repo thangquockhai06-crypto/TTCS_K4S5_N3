@@ -23,7 +23,7 @@
   background-color: var(--color-border-subtle);
 }
 
-/* Bố cục nút chuẩn Google Identity Services (GSI) Codelab Bước 7 - Xếp gọn 2x2 */
+/* Lưới 2x2 nút bấm gọn gàng theo chuẩn Google Codelab Bước 7 */
 .gsiGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -66,7 +66,6 @@
   cursor: not-allowed;
 }
 
-/* Tuỳ chỉnh nút filled_blue trên trang Đăng ký (Bước 7 Codelab: data-theme="filled_blue") */
 .gsiButton--filledBlue {
   background-color: #1A73E8;
   border-color: #1A73E8;
@@ -100,7 +99,7 @@
   font-weight: 600;
 }
 
-/* Fallback OAuth Dialog (nếu trình duyệt chặn popup hoặc đang đồng bộ) */
+/* Cửa sổ OAuth Account Chooser giống bức ảnh chụp của người dùng */
 .oauthBackdrop {
   position: fixed;
   inset: 0;
@@ -116,12 +115,12 @@
 .oauthDialog {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 520px;
   background-color: #202124;
   color: #E8EAED;
-  border-radius: 8px;
+  border-radius: 14px;
   border: 1px solid #3C4043;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.65);
   overflow: hidden;
   font-family: 'Google Sans', Roboto, 'Inter', arial, sans-serif;
 }
@@ -156,9 +155,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: 15px 24px;
   border-bottom: 1px solid #3C4043;
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   color: #E8EAED;
 }
 
@@ -173,8 +172,8 @@
   border: none;
   color: #9AA0A6;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 6px;
   display: inline-flex;
 }
 
@@ -184,36 +183,36 @@
 }
 
 .oauthContent {
-  padding: 24px 28px 28px;
+  padding: 30px 34px 34px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
 }
 
 .appIdentity {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .appIdentity__logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  padding: 6px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  padding: 7px;
   background-color: #090D16;
   border: 1px solid #3C4043;
 }
 
 .appIdentity__title {
-  font-size: 1.4rem;
-  font-weight: 400;
+  font-size: 1.65rem;
+  font-weight: 500;
   color: #E8EAED;
   margin: 0;
 }
 
 .appIdentity__subtitle {
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   color: #BDC1C6;
   margin: 0;
 }
@@ -226,12 +225,12 @@
 .userChip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   align-self: flex-start;
-  padding: 4px 12px 4px 6px;
+  padding: 6px 14px 6px 8px;
   border-radius: 9999px;
   border: 1px solid #5F6368;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   color: #E8EAED;
   background: transparent;
   cursor: pointer;
@@ -242,24 +241,45 @@
 }
 
 .userChip__avatar {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
 }
 
-/* Danh sách tài khoản chuẩn Google Account Chooser */
+/* Danh sách tài khoản của người dùng trong "Chọn một tài khoản" */
 .chooserList {
   display: flex;
   flex-direction: column;
   border-top: 1px solid #3C4043;
 }
 
+.emptyAccountsHint {
+  padding: 16px 14px;
+  border-bottom: 1px solid #3C4043;
+  font-size: 0.88rem;
+  color: #BDC1C6;
+  background-color: rgba(255, 255, 255, 0.02);
+  line-height: 1.55;
+}
+
+.chooserRowWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #3C4043;
+  transition: background-color 0.14s ease;
+}
+
+.chooserRowWrap:hover {
+  background-color: rgba(232, 234, 237, 0.06);
+}
+
 .chooserItem {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 4px;
+  gap: 14px;
+  padding: 16px 8px;
   background: transparent;
   border: none;
   border-bottom: 1px solid #3C4043;
@@ -269,54 +289,86 @@
   transition: background-color 0.14s ease;
 }
 
+.chooserRowWrap .chooserItem {
+  border-bottom: none;
+  flex: 1;
+}
+
 .chooserItem:hover:not(:disabled) {
   background-color: rgba(232, 234, 237, 0.06);
 }
 
+.chooserRowWrap .chooserItem:hover:not(:disabled) {
+  background-color: transparent;
+}
+
 .chooserItem__avatar {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .chooserItem__iconCircle {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #9AA0A6;
+  color: #8AB4F8;
+  background-color: rgba(138, 180, 248, 0.1);
   flex-shrink: 0;
 }
 
 .chooserItem__text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   min-width: 0;
 }
 
 .chooserItem__name {
-  font-size: 0.86rem;
-  font-weight: 500;
+  font-size: 0.96rem;
+  font-weight: 600;
   color: #E8EAED;
 }
 
 .chooserItem__email {
-  font-size: 0.76rem;
+  font-size: 0.84rem;
   color: #9AA0A6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Ô nhập chuẩn Material Outlined của Google */
+.removeAccBtn {
+  background: transparent;
+  border: none;
+  color: #9AA0A6;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.removeAccBtn:hover {
+  color: #F28B82;
+  background-color: rgba(242, 139, 130, 0.12);
+}
+
+/* Form kết nối & thêm tài khoản của người dùng vào dữ liệu */
 .stepForm {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+
+.formGrid2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .outlinedField {
@@ -326,7 +378,7 @@
 }
 
 .outlinedField label {
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   color: #8AB4F8;
   font-weight: 500;
 }
@@ -341,11 +393,11 @@
   width: 100%;
   height: 44px;
   padding: 0 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid #5F6368;
-  background-color: transparent;
+  background-color: #18191A;
   color: #E8EAED;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .outlinedInput:focus {
@@ -354,36 +406,52 @@
   box-shadow: 0 0 0 1px #8AB4F8;
 }
 
+.outlinedInput::placeholder {
+  color: #80868B;
+}
+
+.dbStatusBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background-color: rgba(138, 180, 248, 0.1);
+  border: 1px solid rgba(138, 180, 248, 0.3);
+  color: #8AB4F8;
+  font-size: 0.82rem;
+}
+
 .fieldError {
   display: flex;
   align-items: center;
   gap: 6px;
   color: #F28B82;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
 }
 
 .smsHintBox {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 9px 12px;
+  gap: 10px;
+  padding: 11px 14px;
   border-radius: 6px;
   background-color: rgba(129, 201, 149, 0.12);
   border: 1px solid rgba(129, 201, 149, 0.35);
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   color: #E8EAED;
 }
 
 .smsHintBox strong {
   color: #81C995;
   font-family: var(--font-mono);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
 }
 
 .policyCopy {
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 0.84rem;
+  line-height: 1.55;
   color: #9AA0A6;
   margin: 0;
 }
@@ -400,14 +468,20 @@
   margin-top: 6px;
 }
 
+.actionRowRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .ghostBtn {
-  height: 36px;
+  height: 40px;
   padding: 0 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   border: none;
   background: transparent;
   color: #8AB4F8;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
 }
@@ -416,14 +490,30 @@
   background-color: rgba(138, 180, 248, 0.08);
 }
 
+.secondaryBtn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid #8AB4F8;
+  background-color: transparent;
+  color: #8AB4F8;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background-color: rgba(138, 180, 248, 0.12);
+}
+
 .primaryBtn {
-  height: 36px;
-  padding: 0 20px;
-  border-radius: 4px;
+  height: 40px;
+  padding: 0 22px;
+  border-radius: 6px;
   border: none;
   background-color: #8AB4F8;
   color: #202124;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -438,7 +528,8 @@
 }
 
 @media (max-width: 480px) {
-  .gsiGrid {
+  .gsiGrid,
+  .formGrid2 {
     grid-template-columns: 1fr;
   }
 }
