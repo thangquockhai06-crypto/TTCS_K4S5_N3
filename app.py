@@ -1,11 +1,51 @@
 # app.py
+import uuid
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
-from typing import Optional
-import uuid
 
-app = FastAPI()
+from database import engine, Base, current_user_ctx
+from models import register_audit_listeners
+from routers import audit_logs_router, deals_router, users_router
+
+# Initialize database tables and register SQLAlchemy event listeners for AuditLog snapshotting
+Base.metadata.create_all(bind=engine)
+register_audit_listeners()
+
+app = FastAPI(
+    title="NexusCRM Enterprise Backend API",
+    description="Backend API với kiến trúc phân tầng chuẩn và Phân hệ Nhật ký thay đổi (Audit Log)",
+    version="2026.1"
+)
+
+
+@app.middleware("http")
+async def audit_user_context_middleware(request: Request, call_next):
+    """
+    Middleware that captures user identity headers (x-user-id, x-user-name, x-user-email)
+    and populates current_user_ctx ContextVar for automatic SQLAlchemy audit logging.
+    """
+    user_id = request.headers.get("x-user-id") or request.headers.get("X-User-ID") or "1"
+    user_name = request.headers.get("x-user-name") or request.headers.get("X-User-Name") or "Quản Trị Viên Hệ Thống"
+    user_email = request.headers.get("x-user-email") or request.headers.get("X-User-Email") or "admin@nexuscrm.vn"
+
+    token = current_user_ctx.set({
+        "user_id": user_id,
+        "user_name": user_name,
+        "user_email": user_email,
+    })
+    try:
+        response = await call_next(request)
+        return response
+    finally:
+        current_user_ctx.reset(token)
+
+
+# Register modern layered routers
+app.include_router(audit_logs_router)
+app.include_router(deals_router)
+app.include_router(users_router)
 
 # ---------------------------------------------------------
 # 1. Thông báo rõ ràng khi truy cập nhầm chỗ (404) & Không đủ quyền (403)
@@ -32,7 +72,7 @@ async def custom_403_handler(request: Request, exc):
         }
     )
 
-# Giả lập cơ sở dữ liệu người dùng
+# Giả lập cơ sở dữ liệu người dùng (Legacy support)
 db_users = []
 
 class UserCreate(BaseModel):
@@ -42,7 +82,7 @@ class UserCreate(BaseModel):
     role: str
 
 # ---------------------------------------------------------
-# 2. Tạo tài khoản, gửi email kích hoạt & từ chối email trùng
+# 2. Tạo tài khoản, gửi email kích hoạt & từ chối email trùng (Legacy Endpoint)
 # ---------------------------------------------------------
 @app.post("/users", status_code=201)
 def create_user(user: UserCreate):
@@ -75,7 +115,7 @@ def create_user(user: UserCreate):
     }
 
 # ---------------------------------------------------------
-# 3. Tìm kiếm, Lọc & Phân trang danh sách (mặc định 20 dòng)
+# 3. Tìm kiếm, Lọc & Phân trang danh sách (mặc định 20 dòng) (Legacy Endpoint)
 # ---------------------------------------------------------
 @app.get("/users")
 def get_users(
