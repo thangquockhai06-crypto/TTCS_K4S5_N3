@@ -1,7 +1,7 @@
-.socialSection {
+.gsiSection {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .divider {
@@ -23,523 +23,422 @@
   background-color: var(--color-border-subtle);
 }
 
-/* Gọn gàng: Bố cục 2x2 ngang (Compact Horizontal Grid) trên trang Login & Register */
-.compactGrid {
+/* Bố cục nút chuẩn Google Identity Services (GSI) Codelab Bước 7 - Xếp gọn 2x2 */
+.gsiGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
-.compactProviderBtn {
-  height: 38px;
+.gsiButton {
+  height: 40px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 10px;
   padding: 0 12px;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border-strong);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid #747775;
+  background-color: #FFFFFF;
+  color: #1F1F1F;
+  font-family: 'Google Sans', 'Inter', Roboto, arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: var(--shadow-xs);
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   white-space: nowrap;
+  overflow: hidden;
 }
 
-.compactProviderBtn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background-color: var(--color-bg-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+.gsiButton:hover:not(:disabled) {
+  background-color: #F8FAFD;
+  border-color: #1A73E8;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
 }
 
-.compactProviderBtn:active:not(:disabled) {
-  transform: translateY(0);
+.gsiButton:active:not(:disabled) {
+  background-color: #E8F0FE;
 }
 
-.compactProviderBtn:disabled {
-  opacity: 0.5;
+.gsiButton:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.compactProviderBtn__icon {
-  width: 17px;
-  height: 17px;
+/* Tuỳ chỉnh nút filled_blue trên trang Đăng ký (Bước 7 Codelab: data-theme="filled_blue") */
+.gsiButton--filledBlue {
+  background-color: #1A73E8;
+  border-color: #1A73E8;
+  color: #FFFFFF;
+}
+
+.gsiButton--filledBlue:hover:not(:disabled) {
+  background-color: #1557B0;
+  border-color: #1557B0;
+}
+
+.gsiButton--filledBlue .gsiButton__iconWrap {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+}
+
+.gsiButton__iconWrap {
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* Cửa sổ Popup OAuth gọn gàng (Compact OAuth Connection Popup) */
-.popupOverlay {
+.gsiButton__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+/* Fallback OAuth Dialog (nếu trình duyệt chặn popup hoặc đang đồng bộ) */
+.oauthBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 1300;
-  background-color: rgba(9, 13, 22, 0.65);
-  backdrop-filter: blur(4px);
+  z-index: 1400;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
 }
 
-.popupWindow {
+.oauthDialog {
   position: relative;
   width: 100%;
-  max-width: 440px;
-  background-color: #18191A;
+  max-width: 420px;
+  background-color: #202124;
   color: #E8EAED;
-  border-radius: 14px;
-  border: 1px solid #3A3B3C;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  border: 1px solid #3C4043;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Google Sans', Roboto, 'Inter', arial, sans-serif;
 }
 
-/* Thanh loading chạy ngang trên đỉnh khi đang kết nối */
-.connectingBar {
+.progressTrack {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
-  background-size: 200% 100%;
-  animation: loadingSlide 0.9s linear infinite;
-  z-index: 10;
+  background-color: #3C4043;
+  overflow: hidden;
 }
 
-@keyframes loadingSlide {
+.progressFill {
+  width: 45%;
+  height: 100%;
+  background-color: #8AB4F8;
+  animation: gsiProgress 1s infinite ease-in-out;
+}
+
+@keyframes gsiProgress {
   0% {
-    background-position: 100% 0;
+    transform: translateX(-100%);
   }
   100% {
-    background-position: -100% 0;
+    transform: translateX(220%);
   }
 }
 
-/* Thanh trình duyệt thu gọn */
-.browserBar {
+.oauthTopBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px 14px;
-  background-color: #242526;
-  border-bottom: 1px solid #3A3B3C;
+  padding: 12px 20px;
+  border-bottom: 1px solid #3C4043;
+  font-size: 0.82rem;
+  color: #E8EAED;
 }
 
-.browserBar__url {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  color: #B0B3B8;
-  min-width: 0;
-  flex: 1;
-}
-
-.browserBar__url span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.browserBar__domain {
-  color: #E4E6EB;
-  font-weight: 600;
-}
-
-.browserBar__close {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: #B0B3B8;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.browserBar__close:hover {
-  background-color: #E81123;
-  color: #FFFFFF;
-}
-
-/* Phần thân gọn gàng */
-.popupContent {
-  padding: 18px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Header ngang gọn: Icon Nhà cung cấp <-> Logo NexusCRM */
-.popupHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.popupHeader__left {
+.oauthTopBar__brand {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.popupHeader__badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background-color: #242526;
-  border: 1px solid #3A3B3C;
+.oauthTopBar__close {
+  background: transparent;
+  border: none;
+  color: #9AA0A6;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
-.popupHeader__titles {
+.oauthTopBar__close:hover {
+  background-color: #3C4043;
+  color: #FFFFFF;
+}
+
+.oauthContent {
+  padding: 24px 28px 28px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 18px;
 }
 
-.popupHeader__title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #F5F6F7;
-  margin: 0;
+.appIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.popupHeader__subtitle {
-  font-size: 0.78rem;
-  color: #B0B3B8;
-  margin: 0;
-}
-
-.popupHeader__subtitle strong {
-  color: #8AB4F8;
-}
-
-.popupHeader__appLogo {
-  width: 32px;
-  height: 32px;
+.appIdentity__logo {
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
-  padding: 5px;
-  background-color: #0F172A;
-  border: 1px solid #3A3B3C;
-  flex-shrink: 0;
+  padding: 6px;
+  background-color: #090D16;
+  border: 1px solid #3C4043;
 }
 
-/* Thanh chuyển đổi ngang: [Tài khoản sẵn có] | [Tự nhập tài khoản] */
-.modeTabs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-  padding: 3px;
-  border-radius: 9px;
-  background-color: #242526;
-  border: 1px solid #3A3B3C;
+.appIdentity__title {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #E8EAED;
+  margin: 0;
 }
 
-.modeTab {
-  height: 31px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: #B0B3B8;
-  font-size: 0.76rem;
-  font-weight: 600;
-  cursor: pointer;
+.appIdentity__subtitle {
+  font-size: 0.9rem;
+  color: #BDC1C6;
+  margin: 0;
+}
+
+.appIdentity__subtitle strong {
+  color: #8AB4F8;
+  font-weight: 500;
+}
+
+.userChip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.14s ease;
-}
-
-.modeTab--active {
-  background-color: #3A3B3C;
-  color: #FFFFFF;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Thông báo lỗi hoặc trạng thái đang kết nối */
-.errorBanner {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  padding: 9px 11px;
-  border-radius: 8px;
-  background-color: rgba(242, 139, 130, 0.12);
-  border: 1px solid rgba(242, 139, 130, 0.4);
-  color: #F28B82;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-.connectingBanner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 11px;
-  border-radius: 8px;
-  background-color: rgba(138, 180, 248, 0.12);
-  border: 1px solid rgba(138, 180, 248, 0.35);
-  color: #8AB4F8;
+  align-self: flex-start;
+  padding: 4px 12px 4px 6px;
+  border-radius: 9999px;
+  border: 1px solid #5F6368;
   font-size: 0.8rem;
-  font-weight: 600;
+  color: #E8EAED;
+  background: transparent;
+  cursor: pointer;
 }
 
-/* Danh sách tài khoản sẵn có (Ấn 1 chạm là vào thẳng) */
-.accountCardsList {
+.userChip:hover {
+  background-color: rgba(232, 234, 237, 0.06);
+}
+
+.userChip__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+/* Danh sách tài khoản chuẩn Google Account Chooser */
+.chooserList {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  border-top: 1px solid #3C4043;
 }
 
-.accountRowBtn {
+.chooserItem {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 9px 11px;
-  border-radius: 10px;
-  border: 1px solid #3A3B3C;
-  background-color: #242526;
-  color: #E4E6EB;
+  gap: 12px;
+  padding: 12px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #3C4043;
+  color: #E8EAED;
   text-align: left;
   cursor: pointer;
-  transition: all 0.14s ease;
+  transition: background-color 0.14s ease;
 }
 
-.accountRowBtn:hover:not(:disabled) {
-  border-color: #8AB4F8;
-  background-color: #2D2F31;
-  transform: translateX(2px);
+.chooserItem:hover:not(:disabled) {
+  background-color: rgba(232, 234, 237, 0.06);
 }
 
-.accountRowBtn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.accountRowBtn__left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.accountRowBtn__avatar {
+.chooserItem__avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  overflow: hidden;
   flex-shrink: 0;
 }
 
-.accountRowBtn__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.chooserItem__iconCircle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9AA0A6;
+  flex-shrink: 0;
 }
 
-.accountRowBtn__info {
+.chooserItem__text {
   display: flex;
   flex-direction: column;
   gap: 1px;
   min-width: 0;
 }
 
-.accountRowBtn__name {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: #F5F6F7;
+.chooserItem__name {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #E8EAED;
 }
 
-.accountRowBtn__sub {
-  font-size: 0.74rem;
-  color: #B0B3B8;
+.chooserItem__email {
+  font-size: 0.76rem;
+  color: #9AA0A6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.accountRowBtn__badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  background-color: rgba(138, 180, 248, 0.14);
+/* Ô nhập chuẩn Material Outlined của Google */
+.stepForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.outlinedField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outlinedField label {
+  font-size: 0.76rem;
   color: #8AB4F8;
-  white-space: nowrap;
-  flex-shrink: 0;
+  font-weight: 500;
 }
 
-/* Form tự nhập tài khoản gọn 2 cột ngang */
-.compactForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.formRow2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fieldGroup label {
-  font-size: 0.73rem;
-  font-weight: 600;
-  color: #B0B3B8;
-}
-
-.inputWrap {
+.outlinedInputWrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.compactInput {
+.outlinedInput {
   width: 100%;
-  height: 36px;
-  padding: 0 11px;
-  border-radius: 7px;
-  border: 1px solid #4E4F50;
-  background-color: #242526;
-  color: #F5F6F7;
-  font-size: 0.82rem;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid #5F6368;
+  background-color: transparent;
+  color: #E8EAED;
+  font-size: 0.9rem;
 }
 
-.compactInput:focus {
+.outlinedInput:focus {
   outline: none;
   border-color: #8AB4F8;
+  box-shadow: 0 0 0 1px #8AB4F8;
 }
 
-.compactInput::placeholder {
-  color: #7A7D82;
+.fieldError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #F28B82;
+  font-size: 0.76rem;
 }
 
-.eyeBtn {
-  position: absolute;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: #B0B3B8;
-  cursor: pointer;
-  padding: 3px;
-  display: inline-flex;
-}
-
-/* Hộp OTP gọn ngang trên cùng 1 hàng */
-.inlineOtpBox {
+.smsHintBox {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 9px 12px;
+  border-radius: 6px;
   background-color: rgba(129, 201, 149, 0.12);
   border: 1px solid rgba(129, 201, 149, 0.35);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
+  color: #E8EAED;
 }
 
-.inlineOtpBox strong {
-  font-family: var(--font-mono);
+.smsHintBox strong {
   color: #81C995;
-  font-size: 0.88rem;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
 }
 
-.otpSendBtn {
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 7px;
-  border: 1px solid #8AB4F8;
-  background-color: rgba(138, 180, 248, 0.12);
+.policyCopy {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #9AA0A6;
+  margin: 0;
+}
+
+.policyCopy span {
   color: #8AB4F8;
-  font-size: 0.76rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
 }
 
-.otpSendBtn:hover {
-  background-color: rgba(138, 180, 248, 0.22);
-}
-
-.appleRelayToggle {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.76rem;
-  color: #B0B3B8;
-  cursor: pointer;
-}
-
-.formFooter {
+.actionRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 10px;
+  margin-top: 6px;
 }
 
-.submitConnectBtn {
-  width: 100%;
-  height: 38px;
-  border-radius: 8px;
+.ghostBtn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #8AB4F8;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ghostBtn:hover {
+  background-color: rgba(138, 180, 248, 0.08);
+}
+
+.primaryBtn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 4px;
   border: none;
   background-color: #8AB4F8;
-  color: #18191A;
-  font-size: 0.83rem;
-  font-weight: 700;
+  color: #202124;
+  font-size: 0.84rem;
+  font-weight: 600;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: opacity 0.14s ease;
 }
 
-.submitConnectBtn:hover:not(:disabled) {
-  opacity: 0.92;
+.primaryBtn:hover:not(:disabled) {
+  background-color: #AECBFA;
 }
 
-.submitConnectBtn:disabled {
+.primaryBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.footerNote {
-  font-size: 0.7rem;
-  color: #8A8D91;
-  text-align: center;
-  margin: 0;
-}
-
-@media (max-width: 460px) {
-  .formRow2 {
+@media (max-width: 480px) {
+  .gsiGrid {
     grid-template-columns: 1fr;
   }
 }
