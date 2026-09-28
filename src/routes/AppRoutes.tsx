@@ -8,6 +8,7 @@ import { CustomerDetailPage } from '../pages/CustomerDetailPage';
 import { CustomerListPage } from '../pages/CustomerListPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { DealPipelinePage } from '../pages/DealPipelinePage';
+import { ErrorPage } from '../pages/ErrorPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ReportsPage } from '../pages/ReportsPage';
@@ -50,7 +51,9 @@ export const AppRoutes: React.FC = () => {
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    <Route path="/forbidden" element={<ErrorPage code={403} />} />
+<Route path="/not-found" element={<ErrorPage code={404} />} />
+<Route path="*" element={<ErrorPage code={404} />} />
     </Routes>
   );
 };
