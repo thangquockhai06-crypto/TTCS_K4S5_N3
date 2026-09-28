@@ -1,0 +1,44 @@
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  background-color: var(--color-bg-app);
+}
+
+.appShell__mainArea {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Khi Sidebar thụt vào thì thụt hẳn vào (margin-left: 0, mở rộng toàn màn hình) */
+.appShell--collapsed .appShell__mainArea {
+  margin-left: 0;
+}
+
+.appShell__content {
+  flex: 1;
+  padding: 28px 32px 48px;
+  max-width: 1520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1023px) {
+  .appShell__mainArea,
+  .appShell--collapsed .appShell__mainArea {
+    margin-left: 0;
+  }
+
+  .appShell__content {
+    padding: 20px 18px 86px;
+  }
+}
+
+@media (max-width: 480px) {
+  .appShell__content {
+    padding: 14px 12px 88px;
+  }
+}

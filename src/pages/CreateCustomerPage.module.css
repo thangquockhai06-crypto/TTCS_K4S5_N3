@@ -1,0 +1,250 @@
+.createPage {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.topActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+}
+
+.headerBlock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.headerBlock__title {
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.headerBlock__subtitle {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.livePreviewPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.livePreviewPill strong {
+  display: block;
+  font-size: 0.86rem;
+}
+
+.livePreviewPill span {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.multiSectionForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formSection {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.formSection__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.formSection__step {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.formSection__title {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.formSection__desc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.formSection__fieldsCard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grid2Col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.grid3Col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.selectBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selectBox label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.selectBox select {
+  height: 52px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-bg-surface);
+  font-size: 0.88rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.selectBox select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.tagsEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tagsEditor label,
+.summaryField label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.tagsEditor__row {
+  display: flex;
+  gap: 10px;
+}
+
+.tagsEditor__row input {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-app);
+  font-size: 0.85rem;
+}
+
+.tagsEditor__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.removableTag {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.removableTag:hover {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.summaryField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryField textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-bg-app);
+  font-size: 0.875rem;
+  resize: vertical;
+  outline: none;
+}
+
+.summaryField textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.stickyFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 24px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 1023px) {
+  .formSection {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .grid3Col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid2Col {
+    grid-template-columns: 1fr;
+  }
+}

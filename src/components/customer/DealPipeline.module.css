@@ -1,0 +1,234 @@
+.kanbanBoard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(285px, 1fr));
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  align-items: start;
+}
+
+.kanbanColumn {
+  background-color: var(--color-bg-subtle);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 540px;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.kanbanColumn--dropActive {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.columnHeader {
+  padding: 4px 4px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.columnHeader__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.columnHeader__titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.columnHeader__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.columnHeader__title {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.columnHeader__count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.columnHeader__sum {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.columnHeader__subtitle {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+}
+
+.columnCards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.dealCard {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 15px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: grab;
+  transition: box-shadow 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.dealCard:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.38);
+}
+
+.dealCard--dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+
+.dealCard__topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dealCard__companyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.dealCard__companyLink:hover {
+  color: var(--color-primary);
+}
+
+.dealCard__grip {
+  color: var(--color-text-muted);
+}
+
+.dealCard__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.dealCard__title:hover {
+  color: var(--color-primary);
+}
+
+.dealCard__valueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dealCard__amount {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.dealCard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.dealCard__tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+}
+
+.dealCard__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.dealCard__meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dealCard__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.dealCard__stageControls {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.stageStepBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.stageStepBtn:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.stageStepBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.emptyColumnDrop {
+  flex: 1;
+  min-height: 120px;
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
