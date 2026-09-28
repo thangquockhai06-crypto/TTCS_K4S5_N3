@@ -1,0 +1,190 @@
+:root {
+  --text-primary: #172B4D;
+  --text-secondary: #5E6C84;
+  --border-color: #DFE1E6;
+  --bg-hover: #F4F5F7;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background-color: #ffffff;
+}
+
+.issue-layout {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  gap: 6px;
+}
+
+.icon-epic, .icon-task {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title */
+.issue-title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tool-btn:hover {
+  background: var(--bg-hover);
+}
+
+/* Sections */
+.section-container {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-title-group {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.section-title-group h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(90deg);
+}
+
+.section-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.icon-btn-minimal {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 3px;
+}
+
+.icon-btn-minimal:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Content specific styles */
+.section-content {
+  padding-left: 32px; /* Thụt lề so với icon chevron */
+}
+
+.description-list {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.description-list li {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+/* Attachment Zone */
+.attachment-dropzone {
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #FAFBFC;
+}
+
+.add-attachment-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.add-attachment-btn:hover {
+  background: var(--bg-hover);
+}
+
+.add-attachment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #B39DFF; /* Màu tím Jira cho icon file */
+  color: white;
+  border-radius: 50%;
+}
