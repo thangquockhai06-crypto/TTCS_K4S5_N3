@@ -18,5 +18,9 @@ class User(Base):
     group: str = Column(String(100), nullable=False, default="Default Group")
     role: str = Column(String(50), nullable=False, default="Viewer")  # Sensitive field: Vai trò người dùng
     status: str = Column(String(50), nullable=False, default="active")
+    auth_provider: str = Column(String(50), nullable=False, default="local")
+    google_id: Optional[str] = Column(String(100), nullable=True, index=True)
+    avatar_url: Optional[str] = Column(String(500), nullable=True)
+    hashed_password: Optional[str] = Column(String(255), nullable=True)
     created_at: datetime = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: datetime = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

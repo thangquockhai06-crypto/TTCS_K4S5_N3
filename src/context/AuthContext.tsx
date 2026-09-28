@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import {
   IAuthContext,
   IAuthResponse,
@@ -103,7 +104,17 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
   const login = useCallback(async (payload: ILoginPayload): Promise<IAuthResponse> => {
     setIsLoading(true);
     try {
-      const response = await authenticateWithMock(payload);
+      let response: IAuthResponse;
+      try {
+        const res = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
+        response = res.data;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.data?.detail) {
+          throw new Error(err.response.data.detail as string);
+        }
+        response = await authenticateWithMock(payload);
+      }
+
       window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
       window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
       window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
@@ -124,7 +135,17 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     async (payload: IRegisterPayload): Promise<IAuthResponse> => {
       setIsLoading(true);
       try {
-        const response = await registerWithMock(payload);
+        let response: IAuthResponse;
+        try {
+          const res = await axiosInstance.post<IAuthResponse>('/auth/register', payload);
+          response = res.data;
+        } catch (err: unknown) {
+          if (axios.isAxiosError(err) && err.response?.data?.detail) {
+            throw new Error(err.response.data.detail as string);
+          }
+          response = await registerWithMock(payload);
+        }
+
         window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
@@ -147,7 +168,23 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     async (payload: ISocialAuthPayload): Promise<IAuthResponse> => {
       setIsLoading(true);
       try {
-        const response = await authenticateWithSocialMock(payload);
+        let response: IAuthResponse;
+        try {
+          const endpoint = `/auth/${payload.provider}`;
+          const res = await axiosInstance.post<IAuthResponse>(endpoint, payload);
+          response = res.data;
+        } catch {
+          try {
+            const res = await axiosInstance.post<IAuthResponse>('/auth/social', payload);
+            response = res.data;
+          } catch (innerErr: unknown) {
+            if (axios.isAxiosError(innerErr) && innerErr.response?.data?.detail) {
+              throw new Error(innerErr.response.data.detail as string);
+            }
+            response = await authenticateWithSocialMock(payload);
+          }
+        }
+
         window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
@@ -172,7 +209,21 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     ): Promise<{ otpCode: string; expiresInSeconds: number; existingUser: IUser | null }> => {
       setIsLoading(true);
       try {
-        return await sendPhoneOtpWithMock(phoneNumber);
+        try {
+          const res = await axiosInstance.post<{
+            otpCode: string;
+            expiresInSeconds: number;
+            existingUser: IUser | null;
+          }>('/auth/phone/send-otp', {
+            phoneNumber,
+          });
+          return res.data;
+        } catch (err: unknown) {
+          if (axios.isAxiosError(err) && err.response?.data?.detail) {
+            throw new Error(err.response.data.detail as string);
+          }
+          return await sendPhoneOtpWithMock(phoneNumber);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -184,7 +235,17 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     async (payload: IPhoneOtpVerifyPayload): Promise<IAuthResponse> => {
       setIsLoading(true);
       try {
-        const response = await verifyPhoneOtpWithMock(payload);
+        let response: IAuthResponse;
+        try {
+          const res = await axiosInstance.post<IAuthResponse>('/auth/phone/verify', payload);
+          response = res.data;
+        } catch (err: unknown) {
+          if (axios.isAxiosError(err) && err.response?.data?.detail) {
+            throw new Error(err.response.data.detail as string);
+          }
+          response = await verifyPhoneOtpWithMock(payload);
+        }
+
         window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
         window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));

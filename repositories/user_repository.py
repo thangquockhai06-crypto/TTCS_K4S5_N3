@@ -20,6 +20,11 @@ class UserRepository:
         """Fetch user by email."""
         return self.db.query(User).filter(User.email == email).first()
 
+    def get_by_google_id(self, google_id: str) -> Optional[User]:
+        """Fetch user by Google account ID."""
+        return self.db.query(User).filter(User.google_id == google_id).first()
+
+
     def get_all(self) -> List[User]:
         """Fetch all users."""
         return self.db.query(User).all()

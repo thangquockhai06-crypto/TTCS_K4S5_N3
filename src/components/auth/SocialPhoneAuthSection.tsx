@@ -197,14 +197,63 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
 
   useEffect(() => {
     const scriptId = 'google-gsi-client-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
     }
+
+    const initGoogleGsi = () => {
+      const google = (window as unknown as {
+        google?: {
+          accounts?: {
+            id?: {
+              initialize: (config: {
+                client_id: string;
+                callback: (res: { credential?: string; select_by?: string }) => void;
+                auto_select?: boolean;
+                cancel_on_tap_outside?: boolean;
+              }) => void;
+            };
+          };
+        };
+      }).google;
+
+      if (google?.accounts?.id) {
+        try {
+          google.accounts.id.initialize({
+            client_id: '721724668570-nexuscrm.apps.googleusercontent.com',
+            callback: (res) => {
+              if (res.credential) {
+                void handleCredentialResponse({
+                  credential: res.credential,
+                  select_by: (res.select_by as 'btn' | 'user' | 'fedcm') || 'btn',
+                  provider: 'google',
+                });
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+        } catch {
+          // GSI init fallback
+        }
+      }
+    };
+
+    if ((window as unknown as { google?: { accounts?: { id?: unknown } } }).google?.accounts?.id) {
+      initGoogleGsi();
+    } else if (script) {
+      script.addEventListener('load', initGoogleGsi);
+    }
+
+    return () => {
+      script?.removeEventListener('load', initGoogleGsi);
+    };
   }, []);
 
   /**
@@ -366,8 +415,12 @@ export const SocialPhoneAuthSection: React.FC<ISocialPhoneAuthSectionProps> = ({
           fullName: responsePayload.name,
           companyName,
           roleTitle,
+          credential: response.credential,
+          avatarUrl: responsePayload.picture,
+          sub: responsePayload.sub,
         });
       }
+
 
       setActiveProvider(null);
       setIsProcessingJwt(false);

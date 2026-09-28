@@ -51,7 +51,11 @@ export interface ISocialAuthPayload {
   companyName?: string;
   roleTitle?: string;
   hideAppleEmail?: boolean;
+  credential?: string;
+  avatarUrl?: string;
+  sub?: string;
 }
+
 
 export interface IPhoneOtpVerifyPayload {
   phoneNumber: string;

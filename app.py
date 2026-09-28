@@ -5,18 +5,28 @@ from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
 
-from database import engine, Base, current_user_ctx
+from fastapi.middleware.cors import CORSMiddleware
+from database import engine, Base, current_user_ctx, init_db
 from models import register_audit_listeners
-from routers import audit_logs_router, deals_router, users_router
+from routers import audit_logs_router, deals_router, users_router, auth_router, auth_router_v1
 
 # Initialize database tables and register SQLAlchemy event listeners for AuditLog snapshotting
-Base.metadata.create_all(bind=engine)
+init_db()
 register_audit_listeners()
 
 app = FastAPI(
     title="NexusCRM Enterprise Backend API",
-    description="Backend API với kiến trúc phân tầng chuẩn và Phân hệ Nhật ký thay đổi (Audit Log)",
+    description="Backend API với kiến trúc phân tầng chuẩn, Xác thực Google OAuth/JWT và Phân hệ Nhật ký thay đổi (Audit Log)",
     version="2026.1"
+)
+
+# Enable CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -24,7 +34,7 @@ app = FastAPI(
 async def audit_user_context_middleware(request: Request, call_next):
     """
     Middleware that captures user identity headers (x-user-id, x-user-name, x-user-email)
-    and populates current_user_ctx ContextVar for automatic SQLAlchemy audit logging.
+    or bearer token, and populates current_user_ctx ContextVar for automatic SQLAlchemy audit logging.
     """
     user_id = request.headers.get("x-user-id") or request.headers.get("X-User-ID") or "1"
     user_name = request.headers.get("x-user-name") or request.headers.get("X-User-Name") or "Quản Trị Viên Hệ Thống"
@@ -43,9 +53,12 @@ async def audit_user_context_middleware(request: Request, call_next):
 
 
 # Register modern layered routers
+app.include_router(auth_router)
+app.include_router(auth_router_v1)
 app.include_router(audit_logs_router)
 app.include_router(deals_router)
 app.include_router(users_router)
+
 
 # ---------------------------------------------------------
 # 1. Thông báo rõ ràng khi truy cập nhầm chỗ (404) & Không đủ quyền (403)

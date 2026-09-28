@@ -23,11 +23,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor & OS files
-.DS_Store
-Thumbs.db
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Python & Pytest
+__pycache__/
+*.py[cod]
+*$py.class
+*.db-journal
+test_auth_crm.db
+.pytest_cache/
+

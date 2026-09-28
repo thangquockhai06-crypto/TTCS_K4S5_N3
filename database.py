@@ -27,3 +27,26 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
+
+
+def init_db() -> None:
+    """Initialize database tables and run lightweight SQLite column migrations."""
+    Base.metadata.create_all(bind=engine)
+    if "sqlite" in SQLALCHEMY_DATABASE_URL:
+        with engine.connect() as conn:
+            try:
+                res = conn.exec_driver_sql("PRAGMA table_info(users)")
+                existing_cols = {row[1] for row in res.fetchall()}
+                new_columns = [
+                    ("auth_provider", "VARCHAR(50) DEFAULT 'local'"),
+                    ("google_id", "VARCHAR(100)"),
+                    ("avatar_url", "VARCHAR(500)"),
+                    ("hashed_password", "VARCHAR(255)"),
+                ]
+                for col_name, col_def in new_columns:
+                    if col_name not in existing_cols:
+                        conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
+                conn.commit()
+            except Exception:
+                pass
+

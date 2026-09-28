@@ -18,6 +18,13 @@ from schemas.user import (
     UserUpdateSchema,
     UserResponseSchema,
 )
+from schemas.auth import (
+    GoogleAuthRequest,
+    LoginRequest,
+    RefreshTokenRequest,
+    TokenResponse,
+    UserAuthProfile,
+)
 
 __all__ = [
     "AuditLogBaseSchema",
@@ -33,4 +40,10 @@ __all__ = [
     "UserCreateSchema",
     "UserUpdateSchema",
     "UserResponseSchema",
+    "GoogleAuthRequest",
+    "LoginRequest",
+    "RefreshTokenRequest",
+    "TokenResponse",
+    "UserAuthProfile",
 ]
+
