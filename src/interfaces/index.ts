@@ -4,4 +4,5 @@ export * from './dashboard.interface';
 export * from './deal.interface';
 export * from './settings.interface';
 export * from './audit.interface';
+export * from './user-management.interface';
 export * from './userManagement.interface';

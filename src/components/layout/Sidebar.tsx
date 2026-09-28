@@ -10,7 +10,7 @@ import {
   Plus,
   Settings,
   ShieldCheck,
-  UserCog,
+  UserCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -40,6 +40,12 @@ const NAV_ITEMS: ReadonlyArray<INavItem> = [
     icon: <LayoutDashboard size={19} />,
   },
   {
+    label: 'Quản lý Người dùng',
+    path: '/users',
+    icon: <UserCheck size={19} />,
+    badge: '45',
+  },
+  {
     label: 'Khách hàng',
     path: '/customers',
     icon: <Users size={19} />,
@@ -60,11 +66,6 @@ const NAV_ITEMS: ReadonlyArray<INavItem> = [
     label: 'Báo cáo Doanh thu',
     path: '/reports',
     icon: <BarChart3 size={19} />,
-  },
-  {
-    label: 'Quản trị Người dùng',
-    path: '/users',
-    icon: <UserCog size={19} />,
   },
   {
     label: 'Cài đặt Hệ thống',
