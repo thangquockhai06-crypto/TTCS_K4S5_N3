@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState } from 'react';
 
 // Định nghĩa kiểu dữ liệu
@@ -147,7 +146,6 @@ export default function App() {
     </div>
   );
 }
-=======
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -167,4 +165,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
->>>>>>> origin/main
