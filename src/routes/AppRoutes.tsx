@@ -13,6 +13,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { UserManagementPage } from '../pages/UserManagementPage';
 
 interface IProtectedRouteProps {
   children: React.ReactElement;
@@ -42,6 +43,7 @@ export const AppRoutes: React.FC = () => {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="users" element={<UserManagementPage />} />
         <Route path="customers" element={<CustomerListPage />} />
         <Route path="customers/new" element={<CreateCustomerPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
@@ -51,9 +53,9 @@ export const AppRoutes: React.FC = () => {
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-    <Route path="/forbidden" element={<ErrorPage code={403} />} />
-<Route path="/not-found" element={<ErrorPage code={404} />} />
-<Route path="*" element={<ErrorPage code={404} />} />
+      <Route path="/forbidden" element={<ErrorPage code={403} />} />
+      <Route path="/not-found" element={<ErrorPage code={404} />} />
+      <Route path="*" element={<ErrorPage code={404} />} />
     </Routes>
   );
 };
