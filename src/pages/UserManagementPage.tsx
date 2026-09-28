@@ -20,6 +20,7 @@ import { UserFilterBar } from '../components/users/UserFilterBar';
 import { UserModal } from '../components/users/UserModal';
 import { UserPagination } from '../components/users/UserPagination';
 import { UserTable } from '../components/users/UserTable';
+import { UserManagementPanel } from '../components/users/UserManagementPanel';
 import { useAuth } from '../hooks/useAuth';
 import {
   IUserCreateInput,
@@ -34,6 +35,9 @@ import styles from './UserManagementPage.module.css';
 export const UserManagementPage: React.FC = () => {
   const { user: currentAuthUser } = useAuth();
   const navigate = useNavigate();
+
+  // Chuyển tab giữa Quản lý tài khoản (CRUD) và Bàn giao tài khoản
+  const [activeTab, setActiveTab] = useState<'crud' | 'handover'>('crud');
 
   // Filter & Pagination state (Mặc định 20 dòng)
   const [filter, setFilter] = useState<IUserFilterState>({
@@ -237,8 +241,56 @@ export const UserManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Header section */}
-      <div className={styles.headerSection}>
+      {/* Tab điều hướng phân hệ */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          marginBottom: '1.25rem',
+          borderBottom: '1px solid #e2e8f0',
+          paddingBottom: '0.75rem',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab('crud')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            border: 'none',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'crud' ? '#2563eb' : '#f1f5f9',
+            color: activeTab === 'crud' ? '#ffffff' : '#475569',
+          }}
+        >
+          Quản lý &amp; Cấp quyền Địa bàn (45 Người dùng)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('handover')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            border: 'none',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'handover' ? '#2563eb' : '#f1f5f9',
+            color: activeTab === 'handover' ? '#ffffff' : '#475569',
+          }}
+        >
+          Khóa tài khoản &amp; Bàn giao Khách hàng / Deals
+        </button>
+      </div>
+
+      {activeTab === 'handover' ? (
+        <UserManagementPanel />
+      ) : (
+        <>
+          {/* Header section */}
+          <div className={styles.headerSection}>
         <div className={styles.headerText}>
           <h1 className={styles.pageTitle}>Quản lý Người dùng & Cấp quyền Địa bàn</h1>
           <p className={styles.pageSubtitle}>
@@ -412,6 +464,8 @@ export const UserManagementPage: React.FC = () => {
         onClose={() => setSelectedUserDetail(null)}
         user={selectedUserDetail}
       />
+        </>
+      )}
     </div>
   );
 };
