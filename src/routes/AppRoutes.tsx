@@ -12,6 +12,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { UserManagementPage } from '../pages/UserManagementPage';
 
 interface IProtectedRouteProps {
   children: React.ReactElement;
@@ -47,6 +48,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="deals" element={<DealPipelinePage />} />
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="users" element={<UserManagementPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
