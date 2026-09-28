@@ -107,7 +107,11 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
       let response: IAuthResponse;
       try {
         const res = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
-        response = res.data;
+        if (res.data && res.data.accessToken && res.data.user) {
+          response = res.data;
+        } else {
+          throw new Error('Phản hồi đăng nhập không hợp lệ');
+        }
       } catch (err: unknown) {
         if (axios.isAxiosError(err) && err.response?.data?.detail) {
           throw new Error(err.response.data.detail as string);
@@ -138,7 +142,11 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
         let response: IAuthResponse;
         try {
           const res = await axiosInstance.post<IAuthResponse>('/auth/register', payload);
-          response = res.data;
+          if (res.data && res.data.accessToken && res.data.user) {
+            response = res.data;
+          } else {
+            throw new Error('Phản hồi đăng ký không hợp lệ');
+          }
         } catch (err: unknown) {
           if (axios.isAxiosError(err) && err.response?.data?.detail) {
             throw new Error(err.response.data.detail as string);
@@ -172,11 +180,19 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
         try {
           const endpoint = `/auth/${payload.provider}`;
           const res = await axiosInstance.post<IAuthResponse>(endpoint, payload);
-          response = res.data;
+          if (res.data && res.data.accessToken && res.data.user) {
+            response = res.data;
+          } else {
+            throw new Error('Phản hồi mạng xã hội không hợp lệ');
+          }
         } catch {
           try {
             const res = await axiosInstance.post<IAuthResponse>('/auth/social', payload);
-            response = res.data;
+            if (res.data && res.data.accessToken && res.data.user) {
+              response = res.data;
+            } else {
+              throw new Error('Phản hồi mạng xã hội không hợp lệ');
+            }
           } catch (innerErr: unknown) {
             if (axios.isAxiosError(innerErr) && innerErr.response?.data?.detail) {
               throw new Error(innerErr.response.data.detail as string);
@@ -238,7 +254,11 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
         let response: IAuthResponse;
         try {
           const res = await axiosInstance.post<IAuthResponse>('/auth/phone/verify', payload);
-          response = res.data;
+          if (res.data && res.data.accessToken && res.data.user) {
+            response = res.data;
+          } else {
+            throw new Error('Phản hồi OTP không hợp lệ');
+          }
         } catch (err: unknown) {
           if (axios.isAxiosError(err) && err.response?.data?.detail) {
             throw new Error(err.response.data.detail as string);
