@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useCallback } from 'react';
 import { IUser, RoleType } from '../types/IUser';
 import { MOCK_USERS } from '../data/mockData';
@@ -35,3 +36,16 @@ export const useAuth = (): IUseAuthReturn => {
     hasAnyPermission
   };
 };
+=======
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { IAuthContext } from '../interfaces';
+
+export function useAuth(): IAuthContext {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+>>>>>>> d2f841410afb71effb9703b50bd6f7d70a67fe62

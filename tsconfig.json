@@ -1,12 +1,19 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+=======
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+>>>>>>> d2f841410afb71effb9703b50bd6f7d70a67fe62
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+<<<<<<< HEAD
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -16,6 +23,18 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noImplicitAny": true
+=======
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+>>>>>>> d2f841410afb71effb9703b50bd6f7d70a67fe62
   },
   "include": ["src"]
 }

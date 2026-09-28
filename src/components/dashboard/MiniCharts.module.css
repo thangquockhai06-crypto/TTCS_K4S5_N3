@@ -1,0 +1,198 @@
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.chartCard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chartCard__titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chartCard__iconPrimary {
+  color: var(--color-primary);
+}
+
+.chartCard__iconAccent {
+  color: var(--color-accent);
+}
+
+.chartCard__title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chartCard__subtitle {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.chartHighlight {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.chartHighlight__label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.chartHighlight__val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.chartHighlight__target {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.chartHighlight__deals {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.barChart {
+  height: 170px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: end;
+  padding-top: 12px;
+}
+
+.barChart__column {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease;
+}
+
+.barChart__column:hover,
+.barChart__column--active {
+  background-color: var(--color-bg-hover);
+}
+
+.barChart__barsWrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.barChart__barTarget {
+  width: 12px;
+  border-radius: 4px 4px 0 0;
+  background-color: var(--color-border-strong);
+}
+
+.barChart__barActual {
+  width: 14px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-accent) 100%);
+}
+
+.barChart__label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.funnelList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.funnelItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.funnelItem__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.84rem;
+}
+
+.funnelItem__stage {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.funnelItem__stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.funnelItem__count {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.funnelItem__track {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-subtle);
+  overflow: hidden;
+}
+
+.funnelItem__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+.funnelItem__Sub {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 1023px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .chartHighlight {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

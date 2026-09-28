@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useNavigationMenu } from './hooks/useNavigationMenu';
@@ -88,6 +89,23 @@ export const App: React.FC = () => {
         </main>
       </div>
     </div>
+=======
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CRMDataProvider } from './context/CRMDataContext';
+import { AppRoutes } from './routes/AppRoutes';
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <CRMDataProvider>
+          <AppRoutes />
+        </CRMDataProvider>
+      </AuthProvider>
+    </BrowserRouter>
+>>>>>>> d2f841410afb71effb9703b50bd6f7d70a67fe62
   );
 };
 

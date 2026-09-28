@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "menu-dieu-huong-phan-quyen-nguoi-dung",
   "private": true,
   "version": "1.0.0",
@@ -20,5 +21,31 @@
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
+=======
+  "name": "nexus-crm-saas",
+  "private": true,
+  "version": "2.6.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --open",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.3",
+    "vite": "^6.2.0"
+>>>>>>> d2f841410afb71effb9703b50bd6f7d70a67fe62
   }
 }
