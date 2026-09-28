@@ -1,8 +1,10 @@
 import {
   IAuthResponse,
   ILoginPayload,
+  IPhoneOtpVerifyPayload,
   IRefreshTokenResponseDTO,
   IRegisterPayload,
+  ISocialAuthPayload,
   IUser,
 } from '../interfaces';
 import { createAvatarSvgDataUri } from '../utils/formatters';
@@ -160,3 +162,252 @@ export async function refreshTokenWithMock(
     }),
   };
 }
+
+const PENDING_OTP_STORAGE_KEY = 'nexus_crm_pending_phone_otp';
+
+interface IPendingOtpRecord {
+  phoneNumber: string;
+  otpCode: string;
+  expiresAt: number;
+}
+
+export function normalizeVietnamPhone(rawPhone: string): string {
+  const digitsAndPlus = rawPhone.replace(/[\s.-]/g, '');
+  if (digitsAndPlus.startsWith('+84')) {
+    return `0${digitsAndPlus.slice(3)}`;
+  }
+  if (digitsAndPlus.startsWith('84') && digitsAndPlus.length === 11) {
+    return `0${digitsAndPlus.slice(2)}`;
+  }
+  return digitsAndPlus;
+}
+
+export function isValidVietnamPhone(rawPhone: string): boolean {
+  const normalized = normalizeVietnamPhone(rawPhone);
+  return /^0[35789][0-9]{8}$/.test(normalized);
+}
+
+export async function authenticateWithSocialMock(
+  payload: ISocialAuthPayload
+): Promise<IAuthResponse> {
+  await new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), 420);
+  });
+
+  const rawEmail = payload.email.trim().toLowerCase();
+  if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    throw new Error('INVALID_SOCIAL_EMAIL');
+  }
+
+  const effectiveEmail =
+    payload.provider === 'apple' && payload.hideAppleEmail
+      ? `${rawEmail.split('@')[0]}.relay@privaterelay.appleid.com`
+      : rawEmail;
+
+  const existingAccounts: IStoredAccount[] = [ADMIN_ACCOUNT, ...getRegisteredAccounts()];
+  const matched = existingAccounts.find(
+    (acc) =>
+      acc.email.toLowerCase() === effectiveEmail || acc.email.toLowerCase() === rawEmail
+  );
+
+  if (matched) {
+    const updatedUser: IUser = {
+      ...matched.user,
+      fullName: payload.fullName.trim() || matched.user.fullName,
+    };
+    return {
+      accessToken: generateMockJwt(`access_${payload.provider}`, updatedUser.id),
+      refreshToken: generateMockJwt(`refresh_${payload.provider}`, updatedUser.id),
+      expiresIn: 3600,
+      tokenType: 'Bearer',
+      user: updatedUser,
+      issuedAt: new Date().toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    };
+  }
+
+  const providerLabelMap: Record<ISocialAuthPayload['provider'], string> = {
+    google: 'Tài khoản Google Cá nhân',
+    linkedin: 'Hồ sơ LinkedIn Doanh nghiệp',
+    apple: 'Tài khoản Apple ID',
+  };
+
+  const colorIdxMap: Record<ISocialAuthPayload['provider'], number> = {
+    google: 1,
+    linkedin: 3,
+    apple: 4,
+  };
+
+  const displayName =
+    payload.fullName.trim() ||
+    rawEmail
+      .split('@')[0]
+      .replace(/[._-]/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const newUser: IUser = {
+    id: `usr-${payload.provider}-${Date.now()}`,
+    fullName: displayName,
+    email: effectiveEmail,
+    role: 'Super Admin',
+    title: payload.roleTitle?.trim() || `Quản trị viên (${providerLabelMap[payload.provider]})`,
+    department: 'Ban Điều Hành & Kinh Doanh',
+    avatarUrl: createAvatarSvgDataUri(displayName, colorIdxMap[payload.provider]),
+    workspaceName: payload.companyName?.trim() || 'NexusCRM Enterprise VN',
+  };
+
+  const newAccount: IStoredAccount = {
+    email: effectiveEmail,
+    password: `oauth_${payload.provider}_${Date.now()}`,
+    user: newUser,
+  };
+
+  const updatedList = [...getRegisteredAccounts(), newAccount];
+  window.localStorage.setItem(
+    AUTH_STORAGE_KEYS.REGISTERED_USERS,
+    JSON.stringify(updatedList)
+  );
+
+  return {
+    accessToken: generateMockJwt(`access_${payload.provider}`, newUser.id),
+    refreshToken: generateMockJwt(`refresh_${payload.provider}`, newUser.id),
+    expiresIn: 3600,
+    tokenType: 'Bearer',
+    user: newUser,
+    issuedAt: new Date().toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }),
+  };
+}
+
+export async function sendPhoneOtpWithMock(
+  rawPhoneNumber: string
+): Promise<{ otpCode: string; expiresInSeconds: number; existingUser: IUser | null }> {
+  await new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), 350);
+  });
+
+  if (!isValidVietnamPhone(rawPhoneNumber)) {
+    throw new Error('INVALID_PHONE_NUMBER');
+  }
+
+  const normalizedPhone = normalizeVietnamPhone(rawPhoneNumber);
+  const syntheticEmail = `${normalizedPhone}@phone.nexuscrm.vn`;
+  const existingAccounts = getRegisteredAccounts();
+  const existingAccount = existingAccounts.find(
+    (acc) => acc.email.toLowerCase() === syntheticEmail
+  );
+
+  const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+  const record: IPendingOtpRecord = {
+    phoneNumber: normalizedPhone,
+    otpCode,
+    expiresAt: Date.now() + 120 * 1000,
+  };
+
+  window.sessionStorage.setItem(PENDING_OTP_STORAGE_KEY, JSON.stringify(record));
+
+  return {
+    otpCode,
+    expiresInSeconds: 120,
+    existingUser: existingAccount ? existingAccount.user : null,
+  };
+}
+
+export async function verifyPhoneOtpWithMock(
+  payload: IPhoneOtpVerifyPayload
+): Promise<IAuthResponse> {
+  await new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), 380);
+  });
+
+  const normalizedPhone = normalizeVietnamPhone(payload.phoneNumber);
+  const rawRecord = window.sessionStorage.getItem(PENDING_OTP_STORAGE_KEY);
+
+  if (!rawRecord) {
+    throw new Error('OTP_EXPIRED');
+  }
+
+  let parsedRecord: IPendingOtpRecord;
+  try {
+    parsedRecord = JSON.parse(rawRecord) as IPendingOtpRecord;
+  } catch {
+    throw new Error('OTP_EXPIRED');
+  }
+
+  if (Date.now() > parsedRecord.expiresAt || parsedRecord.phoneNumber !== normalizedPhone) {
+    throw new Error('OTP_EXPIRED');
+  }
+
+  if (parsedRecord.otpCode !== payload.otpCode.trim()) {
+    throw new Error('INVALID_OTP_CODE');
+  }
+
+  window.sessionStorage.removeItem(PENDING_OTP_STORAGE_KEY);
+
+  const syntheticEmail = `${normalizedPhone}@phone.nexuscrm.vn`;
+  const existingAccounts = getRegisteredAccounts();
+  const matched = existingAccounts.find(
+    (acc) => acc.email.toLowerCase() === syntheticEmail
+  );
+
+  if (matched) {
+    return {
+      accessToken: generateMockJwt('access_phone', matched.user.id),
+      refreshToken: generateMockJwt('refresh_phone', matched.user.id),
+      expiresIn: 3600,
+      tokenType: 'Bearer',
+      user: matched.user,
+      issuedAt: new Date().toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    };
+  }
+
+  const displayName =
+    payload.fullName?.trim() || `Người dùng SĐT (${normalizedPhone.slice(-4)})`;
+
+  const newUser: IUser = {
+    id: `usr-phone-${Date.now()}`,
+    fullName: displayName,
+    email: syntheticEmail,
+    role: 'Super Admin',
+    title: `Xác thực SĐT (${normalizedPhone})`,
+    department: 'Ban Điều Hành & Kinh Doanh',
+    avatarUrl: createAvatarSvgDataUri(displayName, 2),
+    workspaceName: 'NexusCRM Enterprise VN',
+  };
+
+  const newAccount: IStoredAccount = {
+    email: syntheticEmail,
+    password: `phone_otp_${normalizedPhone}`,
+    user: newUser,
+  };
+
+  const updatedList = [...existingAccounts, newAccount];
+  window.localStorage.setItem(
+    AUTH_STORAGE_KEYS.REGISTERED_USERS,
+    JSON.stringify(updatedList)
+  );
+
+  return {
+    accessToken: generateMockJwt('access_phone', newUser.id),
+    refreshToken: generateMockJwt('refresh_phone', newUser.id),
+    expiresIn: 3600,
+    tokenType: 'Bearer',
+    user: newUser,
+    issuedAt: new Date().toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }),
+  };
+}
+

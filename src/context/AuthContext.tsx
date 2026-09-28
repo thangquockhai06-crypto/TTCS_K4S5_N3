@@ -3,14 +3,19 @@ import {
   IAuthContext,
   IAuthResponse,
   ILoginPayload,
+  IPhoneOtpVerifyPayload,
   IRegisterPayload,
+  ISocialAuthPayload,
   IUser,
 } from '../interfaces';
 import {
   ADMIN_ACCOUNT,
   AUTH_STORAGE_KEYS,
   authenticateWithMock,
+  authenticateWithSocialMock,
   registerWithMock,
+  sendPhoneOtpWithMock,
+  verifyPhoneOtpWithMock,
 } from '../mock/auth.mock';
 import { axiosInstance, triggerSimulated401OnNextCall } from '../utils/axiosInstance';
 
@@ -138,6 +143,66 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     []
   );
 
+  const loginWithSocial = useCallback(
+    async (payload: ISocialAuthPayload): Promise<IAuthResponse> => {
+      setIsLoading(true);
+      try {
+        const response = await authenticateWithSocialMock(payload);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
+
+        setAccessToken(response.accessToken);
+        setRefreshToken(response.refreshToken);
+        setUser(response.user);
+        setLastTokenRefresh(`Cấp qua ${payload.provider.toUpperCase()} lúc ${response.issuedAt}`);
+        return response;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  const sendPhoneOtp = useCallback(
+    async (
+      phoneNumber: string
+    ): Promise<{ otpCode: string; expiresInSeconds: number; existingUser: IUser | null }> => {
+      setIsLoading(true);
+      try {
+        return await sendPhoneOtpWithMock(phoneNumber);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  const verifyPhoneOtp = useCallback(
+    async (payload: IPhoneOtpVerifyPayload): Promise<IAuthResponse> => {
+      setIsLoading(true);
+      try {
+        const response = await verifyPhoneOtpWithMock(payload);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
+
+        setAccessToken(response.accessToken);
+        setRefreshToken(response.refreshToken);
+        setUser(response.user);
+        setLastTokenRefresh(`Xác thực OTP lúc ${response.issuedAt}`);
+        return response;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   /**
    * [S1-02] Nút Logout xóa sạch storage (giữ lại danh sách tài khoản đã đăng ký)
    */
@@ -179,6 +244,9 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
       lastTokenRefresh,
       login,
       register,
+      loginWithSocial,
+      sendPhoneOtp,
+      verifyPhoneOtp,
       logout,
       triggerMockTokenRefresh,
       updateUserProfile,
@@ -191,6 +259,9 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
       lastTokenRefresh,
       login,
       register,
+      loginWithSocial,
+      sendPhoneOtp,
+      verifyPhoneOtp,
       logout,
       triggerMockTokenRefresh,
       updateUserProfile,
