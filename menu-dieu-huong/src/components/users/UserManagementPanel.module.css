@@ -1,0 +1,745 @@
+.userManage {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.userManage__banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.08) 0%,
+    rgba(139, 92, 246, 0.06) 100%
+  );
+  border: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.userManage__bannerTitle {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-top: 6px;
+}
+
+.userManage__bannerDesc {
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  max-width: 760px;
+  line-height: 1.48;
+}
+
+.userManage__toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--color-text-primary);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.userManage__toastContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userManage__toastIcon {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+/* Interactive KPI Stat Cards */
+.userManage__statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.userManage__statCard {
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-surface);
+  border: 1.5px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  transition: all 0.16s ease;
+  cursor: pointer;
+}
+
+.userManage__statCard:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.userManage__statCard--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.userManage__statLabel {
+  font-size: 0.77rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.userManage__statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.userManage__statSub {
+  font-size: 0.74rem;
+  color: var(--color-text-secondary);
+}
+
+/* Add New User Card Form */
+.userManage__addForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-surface);
+  border: 1.5px solid var(--color-primary);
+}
+
+.userManage__addFormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.userManage__addFormGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.userManage__addField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.userManage__addLabel {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.userManage__addInput {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+  font-size: 0.84rem;
+}
+
+.userManage__addInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-surface);
+}
+
+.userManage__addFormFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.userManage__sectionHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.userManage__sectionTitle {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userManage__sectionSub {
+  font-size: 0.81rem;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+}
+
+/* Organization Tree Grid */
+.userManage__orgTreeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.userManage__teamCard {
+  padding: 15px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-app);
+  border: 1.5px solid var(--color-border);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.16s ease;
+  cursor: pointer;
+}
+
+.userManage__teamCard:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-surface);
+}
+
+.userManage__teamCard--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.userManage__teamHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.userManage__teamCode {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+}
+
+.userManage__teamName {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.userManage__teamDesc {
+  font-size: 0.77rem;
+  color: var(--color-text-secondary);
+  line-height: 1.42;
+}
+
+.userManage__teamMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+/* Toolbar & Filters */
+.userManage__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.userManage__filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.userManage__filterBtn {
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-app);
+  color: var(--color-text-secondary);
+  font-size: 0.79rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.userManage__filterBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.userManage__filterBtn--active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.userManage__searchInput {
+  height: 38px;
+  min-width: 240px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+}
+
+.userManage__searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-surface);
+}
+
+/* Spacious Non-Overlapping User Cards */
+.userManage__userList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.userManage__userCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.userManage__userCard:hover {
+  border-color: var(--color-border-strong);
+}
+
+.userManage__userCard--deactivated {
+  background-color: rgba(239, 68, 68, 0.025);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.userManage__cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.userManage__userIdentity {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.userManage__userInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.userManage__userName {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.userManage__userEmail {
+  font-size: 0.81rem;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+}
+
+.userManage__sessionLine {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.userManage__cardTopRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.userManage__portfolioBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.userManage__portfolioBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.userManage__portfolioBtn--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.userManage__handoverBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: rgba(16, 185, 129, 0.09);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+/* 3-Column Bottom Bar for Role, Sales Team & Data Scope (No Overlap!) */
+.userManage__controlsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1.15fr;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-subtle);
+  align-items: stretch;
+}
+
+.userManage__controlBox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.userManage__controlLabel {
+  font-size: 0.71rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Custom Polished Select Trigger & Popover Menu */
+.userManage__customSelectBtn {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.userManage__customSelectBtn:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-hover);
+}
+
+.userManage__customSelectBtn--open {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.userManage__customSelectMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.userManage__customSelectDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.userManage__customSelectText {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userManage__popoverMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userManage__popoverOption {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background-color: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+
+.userManage__popoverOption:hover {
+  background-color: var(--color-bg-app);
+  border-color: var(--color-border);
+}
+
+.userManage__popoverOption--selected {
+  background-color: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.userManage__popoverOptionTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.userManage__popoverOptionSub {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.userManage__scopeCard {
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.userManage__scopeIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* Expandable Owned Customers & Deals Drawer inside User Card */
+.userManage__portfolioDrawer {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userManage__portfolioDrawerTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.userManage__portfolioChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.userManage__portfolioItemChip {
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Audit Trail List */
+.userManage__auditList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.userManage__emptyAudit {
+  padding: 24px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-app);
+  border: 1px dashed var(--color-border-strong);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.83rem;
+}
+
+.userManage__auditItem {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userManage__auditHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.userManage__auditFlow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.userManage__auditTime {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.userManage__auditMeta {
+  font-size: 0.79rem;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.userManage__auditChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.userManage__auditChip {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .userManage__statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .userManage__controlsGrid,
+  .userManage__addFormGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .userManage__orgTreeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .userManage__searchInput {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .userManage__statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .userManage__banner,
+  .userManage__userCard {
+    padding: 14px;
+  }
+}
