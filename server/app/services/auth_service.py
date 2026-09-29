@@ -49,6 +49,13 @@ class AuthService:
 
         user: Optional[User] = UserRepository.get_by_email(db, normalized_email)
 
+        # 0. Kiểm tra tài khoản có bị vô hiệu hóa hay không
+        if user and getattr(user, "status", "active") in ["inactive", "deactivated"]:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+            )
+
         # 1. Kiểm tra tài khoản có đang trong thời gian bị khóa 15 phút không
         if user and user.lockout_until:
             if user.lockout_until > now_utc:

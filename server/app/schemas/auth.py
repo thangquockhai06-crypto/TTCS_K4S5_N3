@@ -26,6 +26,8 @@ class UserDTO(BaseModel):
     department: str
     avatarUrl: Optional[str] = Field(None, serialization_alias="avatarUrl")
     workspaceName: str = Field(..., serialization_alias="workspaceName")
+    teamId: Optional[str] = Field(None, serialization_alias="teamId")
+    dataScope: Optional[str] = Field(None, serialization_alias="dataScope")
 
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 

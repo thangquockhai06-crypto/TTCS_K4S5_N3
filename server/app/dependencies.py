@@ -49,4 +49,11 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if getattr(user, "status", "active") in ["inactive", "deactivated"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Tài khoản người dùng đã bị vô hiệu hóa.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     return user

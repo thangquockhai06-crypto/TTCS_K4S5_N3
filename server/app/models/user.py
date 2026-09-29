@@ -21,6 +21,11 @@ class User(Base):
     failed_attempts = Column(Integer, default=0, nullable=False)
     lockout_until = Column(DateTime, nullable=True)
 
+    # Data Scope & Team Management
+    team_id = Column(String(50), nullable=True, index=True)
+    data_scope = Column(String(20), nullable=True)
+    status = Column(String(50), nullable=False, default="active", index=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -28,3 +33,5 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     customers = relationship("Customer", back_populates="assigned_user")
     deals = relationship("Deal", back_populates="owner")
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    teams = relationship("Team", secondary="user_teams", back_populates="users")

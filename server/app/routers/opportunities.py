@@ -9,11 +9,11 @@ from app.schemas.deal import DealDTO, CreateDealDTO, MoveDealStageDTO
 from app.services.deal_service import DealService
 from app.core.export import export_to_excel
 
-router = APIRouter(prefix="/deals", tags=["Deals Pipeline (Kanban)"])
+router = APIRouter(prefix="/opportunities", tags=["Opportunities Management"])
 
 
-@router.get("", response_model=List[DealDTO], summary="Lấy danh sách các cơ hội bán hàng")
-def get_deals(
+@router.get("", response_model=List[DealDTO], summary="Lấy danh sách các cơ hội bán hàng (Opportunities)")
+def get_opportunities(
     search: Optional[str] = Query(None, description="Tìm kiếm theo tiêu đề cơ hội"),
     stage: Optional[str] = Query(None, description="Lọc theo stage: lead, contact, proposal, negotiation, won, lost"),
     db: Session = Depends(get_db),
@@ -41,21 +41,20 @@ def get_deals(
     ]
 
 
-@router.get("/export", summary="Xuất danh sách cơ hội bán hàng ra Excel (.xlsx)")
-def export_deals(
+@router.get("/export", summary="Xuất danh sách cơ hội bán hàng (Opportunities) ra Excel (.xlsx)")
+def export_opportunities(
     search: Optional[str] = Query(None, description="Tìm kiếm theo tiêu đề"),
     stage: Optional[str] = Query(None, description="Lọc theo stage"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Xuất danh sách deals ra Excel tuân thủ Data Scope."""
     deals = DealService.get_deals_for_export(
         db=db,
         user=current_user,
         search=search,
         stage=stage,
     )
-    headers = ["Mã Deal", "Tiêu đề", "Giá trị (VNĐ)", "Giai đoạn (Stage)", "Xác suất (%)", "Mã KH", "Người phụ trách", "Ngày dự kiến đóng"]
+    headers = ["Mã Cơ Hội", "Tiêu đề", "Giá trị (VNĐ)", "Giai đoạn (Stage)", "Xác suất (%)", "Mã KH", "Người phụ trách", "Ngày dự kiến đóng"]
     rows = [
         [
             d.id,
@@ -70,15 +69,15 @@ def export_deals(
         for d in deals
     ]
     return export_to_excel(
-        sheet_title="CoHoiBanHang",
+        sheet_title="Opportunities",
         headers=headers,
         rows=rows,
-        filename="danh_sach_co_hoi.xlsx",
+        filename="danh_sach_opportunities.xlsx",
     )
 
 
-@router.post("", response_model=DealDTO, status_code=status.HTTP_201_CREATED, summary="Tạo mới cơ hội bán hàng")
-def create_deal(
+@router.post("", response_model=DealDTO, status_code=status.HTTP_201_CREATED, summary="Tạo mới cơ hội (Opportunity)")
+def create_opportunity(
     dto: CreateDealDTO,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -97,15 +96,15 @@ def create_deal(
     )
 
 
-@router.get("/{deal_id}", response_model=DealDTO, summary="Xem chi tiết cơ hội bán hàng")
-def get_deal_detail(
-    deal_id: str,
+@router.get("/{opportunity_id}", response_model=DealDTO, summary="Xem chi tiết cơ hội (Opportunity)")
+def get_opportunity_detail(
+    opportunity_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> DealDTO:
-    deal: Optional[Deal] = DealService.get_deal_by_id(db=db, deal_id=deal_id, user=current_user)
+    deal: Optional[Deal] = DealService.get_deal_by_id(db=db, deal_id=opportunity_id, user=current_user)
     if not deal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy deal.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy cơ hội bán hàng.")
     return DealDTO(
         id=deal.id,
         title=deal.title,
@@ -119,21 +118,21 @@ def get_deal_detail(
     )
 
 
-@router.patch("/{deal_id}/stage", response_model=DealDTO, summary="Di chuyển stage của deal trên bảng Kanban")
-def move_stage(
-    deal_id: str,
+@router.patch("/{opportunity_id}/stage", response_model=DealDTO, summary="Cập nhật giai đoạn cơ hội")
+def move_opportunity_stage(
+    opportunity_id: str,
     dto: MoveDealStageDTO,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> DealDTO:
     deal: Optional[Deal] = DealService.move_stage(
         db=db,
-        deal_id=deal_id,
+        deal_id=opportunity_id,
         new_stage=dto.stage,
         user=current_user,
     )
     if not deal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy deal.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy cơ hội bán hàng.")
     return DealDTO(
         id=deal.id,
         title=deal.title,

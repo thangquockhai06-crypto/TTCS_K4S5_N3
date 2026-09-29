@@ -77,6 +77,8 @@ def get_me(current_user: User = Depends(get_current_user)) -> UserDTO:
         department=current_user.department or "Vận hành",
         avatarUrl=current_user.avatar_url,
         workspaceName=current_user.workspace_name or "NexusCRM Enterprise VN",
+        teamId=getattr(current_user, "team_id", None),
+        dataScope=getattr(current_user, "data_scope", None),
     )
 
 @router.get(

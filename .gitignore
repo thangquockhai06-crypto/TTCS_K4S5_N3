@@ -60,3 +60,4 @@ venv/
 ENV/
 env/
 server/.env
+.pytest_cache/

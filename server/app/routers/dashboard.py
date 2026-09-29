@@ -14,10 +14,10 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
-    total_customers: int = CustomerRepository.count_all(db)
-    active_customers: int = CustomerRepository.count_by_status(db, "active")
-    total_deals: int = DealRepository.count_all(db)
-    pipeline_value: float = DealRepository.get_total_pipeline_value(db)
+    total_customers: int = CustomerRepository.count_all(db, user=current_user)
+    active_customers: int = CustomerRepository.count_by_status(db, "active", user=current_user)
+    total_deals: int = DealRepository.count_all(db, user=current_user)
+    pipeline_value: float = DealRepository.get_total_pipeline_value(db, user=current_user)
 
     return {
         "totalCustomers": total_customers,

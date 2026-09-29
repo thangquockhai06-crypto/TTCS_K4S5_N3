@@ -4,7 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth_router, customers_router, deals_router, dashboard_router
+from app.routers import (
+    auth_router,
+    users_router,
+    customers_router,
+    deals_router,
+    opportunities_router,
+    activities_router,
+    quotations_router,
+    dashboard_router,
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,8 +50,12 @@ app.add_middleware(
 
 # Mount các Router API
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(customers_router, prefix=settings.API_V1_STR)
 app.include_router(deals_router, prefix=settings.API_V1_STR)
+app.include_router(opportunities_router, prefix=settings.API_V1_STR)
+app.include_router(activities_router, prefix=settings.API_V1_STR)
+app.include_router(quotations_router, prefix=settings.API_V1_STR)
 app.include_router(dashboard_router, prefix=settings.API_V1_STR)
 
 @app.get("/", summary="Health Check")
