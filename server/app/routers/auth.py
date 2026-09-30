@@ -10,6 +10,7 @@ from app.schemas.auth import (
     RefreshTokenPayload,
     ForgotPasswordPayload,
     ResetPasswordPayload,
+    ChangePasswordPayload,
     AuthResponse,
     RefreshTokenResponseDTO,
     UserDTO,
@@ -122,4 +123,28 @@ def reset_password(
     db: Session = Depends(get_db),
 ) -> MessageResponse:
     return AuthService.reset_password(db, payload.token, payload.newPassword)
+
+@router.post(
+    "/change-password",
+    response_model=MessageResponse,
+    summary="Đổi mật khẩu khi đang đăng nhập (SCRUM-72 / S1-04)",
+    description=(
+        "POST /api/v1/auth/change-password: Kiểm tra verify mật khẩu cũ, hash pass mới, "
+        "thu hồi mọi phiên login khác trên Redis / CSDL. "
+        "Yêu cầu mật khẩu mới tối thiểu 8 ký tự, có chữ và số."
+    ),
+)
+def change_password(
+    payload: ChangePasswordPayload,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    return AuthService.change_password(
+        db=db,
+        user=current_user,
+        current_password=payload.currentPassword,
+        new_password=payload.newPassword,
+        current_refresh_token=payload.currentRefreshToken,
+    )
+
 

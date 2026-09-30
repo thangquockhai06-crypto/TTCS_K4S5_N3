@@ -44,3 +44,23 @@ class TokenRepository:
 
         db.commit()
         return len(tokens)
+
+    @staticmethod
+    def revoke_other_user_tokens(db: Session, user_id: str, keep_token: Optional[str] = None) -> int:
+        """
+        [SCRUM-72 / S1-04] Thu hồi các phiên đăng nhập khác của người dùng.
+        """
+        query = db.query(RefreshToken).filter(
+            RefreshToken.user_id == user_id,
+            RefreshToken.is_revoked == False
+        )
+        if keep_token:
+            query = query.filter(RefreshToken.token != keep_token)
+
+        tokens: List[RefreshToken] = query.all()
+        for t in tokens:
+            t.is_revoked = True
+
+        db.commit()
+        return len(tokens)
+

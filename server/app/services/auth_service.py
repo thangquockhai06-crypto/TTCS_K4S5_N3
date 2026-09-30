@@ -340,3 +340,57 @@ class AuthService:
 
         return MessageResponse(message="Mật khẩu của bạn đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.")
 
+    @staticmethod
+    def change_password(
+        db: Session,
+        user: User,
+        current_password: str,
+        new_password: str,
+        current_refresh_token: Optional[str] = None
+    ) -> MessageResponse:
+        """
+        [SCRUM-72 / S1-04] Đổi mật khẩu khi đang đăng nhập:
+        1. Bắt buộc kiểm tra verify mật khẩu hiện tại (current_password).
+        2. Validate mật khẩu mới: tối thiểu 8 ký tự, phải chứa cả chữ cái và chữ số.
+        3. Cập nhật mật khẩu mới (hash_password).
+        4. Thu hồi tất cả các phiên đăng nhập khác của người dùng trên Redis / CSDL.
+        """
+        # 1. Bắt buộc kiểm tra mật khẩu hiện tại
+        if not verify_password(current_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mật khẩu hiện tại không chính xác.",
+            )
+
+        # 2. Kiểm tra định dạng mật khẩu mới (tối thiểu 8 ký tự, có chữ và số)
+        if (
+            len(new_password) < 8
+            or not any(c.isalpha() for c in new_password)
+            or not any(c.isdigit() for c in new_password)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mật khẩu mới phải có tối thiểu 8 ký tự, bao gồm cả chữ cái và chữ số.",
+            )
+
+        # 3. Không cho trùng mật khẩu cũ
+        if verify_password(new_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mật khẩu mới không được trùng với mật khẩu hiện tại.",
+            )
+
+        # 4. Hash và cập nhật mật khẩu mới
+        user.password_hash = hash_password(new_password)
+        UserRepository.update(db, user)
+
+        # 5. Thu hồi tất cả các phiên đăng nhập khác
+        revoked_count: int = TokenRepository.revoke_other_user_tokens(
+            db, user.id, keep_token=current_refresh_token
+        )
+
+        return MessageResponse(
+            message=f"Đổi mật khẩu thành công. Đã thu hồi {revoked_count} phiên đăng nhập khác để bảo vệ tài khoản."
+        )
+
+

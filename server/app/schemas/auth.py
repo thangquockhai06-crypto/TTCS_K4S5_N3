@@ -62,3 +62,11 @@ class ResetPasswordPayload(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
+class ChangePasswordPayload(BaseModel):
+    currentPassword: str = Field(..., alias="current_password")
+    newPassword: str = Field(..., alias="new_password")
+    currentRefreshToken: Optional[str] = Field(None, alias="current_refresh_token")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+

@@ -3,12 +3,20 @@ Bộ kiểm thử tự động cho SCRUM-71 / S1-03: Đặt lại mật khẩu q
 - POST /api/v1/auth/forgot-password (secrets.token_urlsafe, Redis 30p, Anti-Enumeration)
 - POST /api/v1/auth/reset-password (Liên kết dùng 01 lần, đổi mật khẩu)
 """
+import os
+import sys
+
+SERVER_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if SERVER_DIR not in sys.path:
+    sys.path.insert(0, SERVER_DIR)
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from app.core.redis_client import redis_manager
+
 
 
 def test_forgot_password_success(client: TestClient, db_session: Session):
