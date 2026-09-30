@@ -1,4 +1,5 @@
 import uuid
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import HTTPException, status
@@ -15,6 +16,7 @@ from app.schemas.auth import (
     AuthResponse,
     RefreshTokenResponseDTO,
     UserDTO,
+    MessageResponse,
 )
 from app.core.security import (
     verify_password,
@@ -23,6 +25,9 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
 )
+from app.core.redis_client import redis_manager, TOKEN_EXPIRE_MINUTES
+from app.core.celery_tasks import send_password_reset_email_task
+
 
 # Constants theo chuẩn PEP 8 (UPPER_CASE_SNAKE)
 MAX_LOGIN_ATTEMPTS: int = 5
@@ -257,3 +262,81 @@ class AuthService:
         2. Đăng xuất làm mất hiệu lực phiên ngay lập tức phía server
         """
         TokenRepository.revoke_all_user_tokens(db, user_id, refresh_token_str)
+
+    @staticmethod
+    def forgot_password(db: Session, email: str) -> MessageResponse:
+        """
+        [SCRUM-71 / S1-03] Đặt lại mật khẩu qua Email:
+        1. Sinh token bằng secrets.token_urlsafe()
+        2. Lưu Redis với TTL 30 phút (TOKEN_EXPIRE_MINUTES = 30)
+        3. Celery task gửi email SMTP
+        4. Anti-Enumeration: Dù email có tồn tại hay không vẫn trả về cùng thông báo.
+        """
+        normalized_email: str = email.strip().lower()
+        user: Optional[User] = UserRepository.get_by_email(db, normalized_email)
+
+        # Anti-Enumeration: Hiển thị cùng 1 thông báo chung
+        generic_message: str = (
+            "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu có hiệu lực trong 30 phút."
+        )
+
+        if user:
+            # Sinh token an toàn qua secrets.token_urlsafe()
+            reset_token: str = secrets.token_urlsafe(32)
+
+            # Lưu token vào Redis TTL 30 phút (1800s)
+            redis_manager.set_reset_token(
+                token=reset_token,
+                email=user.email,
+                ttl_seconds=TOKEN_EXPIRE_MINUTES * 60,
+            )
+
+            # Tạo liên kết đặt lại mật khẩu
+            reset_link: str = f"http://localhost:5173/reset-password?token={reset_token}"
+
+            # Gọi Celery Task gửi email SMTP
+            send_password_reset_email_task(
+                email=user.email,
+                reset_link=reset_link,
+                full_name=user.full_name,
+            )
+
+        return MessageResponse(message=generic_message)
+
+    @staticmethod
+    def reset_password(db: Session, token: str, new_password: str) -> MessageResponse:
+        """
+        [SCRUM-71 / S1-03] Xác nhận đặt lại mật khẩu bằng token:
+        1. Kiểm tra token trong Redis (TTL 30 phút)
+        2. Đổi mật khẩu trong CSDL
+        3. Xóa token khỏi Redis -> Đảm bảo liên kết chỉ dùng được 01 lần
+        """
+        if not token or not token.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mã đặt lại mật khẩu không hợp lệ.",
+            )
+
+        email: Optional[str] = redis_manager.get_reset_token(token.strip())
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn (30 phút).",
+            )
+
+        user: Optional[User] = UserRepository.get_by_email(db, email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Tài khoản người dùng không tồn tại.",
+            )
+
+        # Cập nhật mật khẩu mới
+        user.password_hash = hash_password(new_password)
+        UserRepository.update(db, user)
+
+        # Xóa token khỏi Redis -> Liên kết chỉ dùng được 01 lần
+        redis_manager.delete_reset_token(token.strip())
+
+        return MessageResponse(message="Mật khẩu của bạn đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.")
+

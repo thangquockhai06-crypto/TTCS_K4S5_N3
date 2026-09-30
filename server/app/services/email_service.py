@@ -46,3 +46,39 @@ class EmailService:
             "subject": subject,
             "message": "Email kích hoạt và mật khẩu tạm thời đã được gửi thành công.",
         }
+
+    @staticmethod
+    def send_password_reset_email(
+        email: str,
+        reset_link: str,
+        full_name: str = None,
+    ) -> Dict[str, Any]:
+        """
+        [SCRUM-71 / S1-03]
+        Gửi email chứa liên kết đặt lại mật khẩu với thời hạn 30 phút.
+        """
+        greeting_name = full_name if full_name else "Người dùng NexusCRM"
+        subject = "NexusCRM Enterprise - Yêu cầu đặt lại mật khẩu tài khoản"
+        content = (
+            f"Kính gửi {greeting_name},\n\n"
+            f"Hệ thống nhận được yêu cầu đặt lại mật khẩu cho tài khoản: {email}.\n\n"
+            f"Vui lòng nhấn vào liên kết bên dưới để hoàn tất việc đặt lại mật khẩu:\n"
+            f"{reset_link}\n\n"
+            f"LƯU Ý BẢO MẬT:\n"
+            f"1. Liên kết này chỉ có hiệu lực trong vòng 30 PHÚT kể từ thời điểm gửi.\n"
+            f"2. Liên kết chỉ sử dụng được 01 LẦN duy nhất.\n"
+            f"3. Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email và mật khẩu hiện tại của bạn vẫn an toàn.\n\n"
+            f"Trân trọng,\n"
+            f"Ban Quản Trị & Vận Hành NexusCRM Enterprise VN"
+        )
+
+        logger.info(f"[EMAIL SERVICE SMTP] Đã gửi email liên kết đặt lại mật khẩu 30p tới: {email}")
+
+        return {
+            "success": True,
+            "recipient": email,
+            "subject": subject,
+            "resetLink": reset_link,
+            "message": "Email hướng dẫn đặt lại mật khẩu đã được gửi thành công.",
+        }
+

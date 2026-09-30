@@ -8,6 +8,8 @@ from app.schemas.auth import (
     LoginPayload,
     RegisterPayload,
     RefreshTokenPayload,
+    ForgotPasswordPayload,
+    ResetPasswordPayload,
     AuthResponse,
     RefreshTokenResponseDTO,
     UserDTO,
@@ -92,3 +94,32 @@ def session_heartbeat(current_user: User = Depends(get_current_user)) -> Dict[st
         "role": current_user.role,
         "authenticated": True,
     }
+
+@router.post(
+    "/forgot-password",
+    response_model=MessageResponse,
+    summary="Yêu cầu đặt lại mật khẩu qua Email (SCRUM-71 / S1-03)",
+    description=(
+        "POST /api/v1/auth/forgot-password: sinh token secrets.token_urlsafe(), "
+        "lưu Redis TTL 30p; Celery task gửi email SMTP. "
+        "Dù email không tồn tại vẫn hiển thị cùng một thông báo (Anti-Enumeration)."
+    ),
+)
+def forgot_password(
+    payload: ForgotPasswordPayload,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    return AuthService.forgot_password(db, payload.email)
+
+@router.post(
+    "/reset-password",
+    response_model=MessageResponse,
+    summary="Xác nhận đặt lại mật khẩu bằng token (SCRUM-71 / S1-03)",
+    description="Liên kết chỉ dùng được 01 lần và có hiệu lực trong 30 phút.",
+)
+def reset_password(
+    payload: ResetPasswordPayload,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    return AuthService.reset_password(db, payload.token, payload.newPassword)
+

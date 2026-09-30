@@ -52,3 +52,13 @@ class RefreshTokenResponseDTO(BaseModel):
 class MessageResponse(BaseModel):
     message: str
     retryAfterSeconds: Optional[int] = None
+
+class ForgotPasswordPayload(BaseModel):
+    email: str
+
+class ResetPasswordPayload(BaseModel):
+    token: str
+    newPassword: str = Field(..., alias="new_password")
+
+    model_config = ConfigDict(populate_by_name=True)
+
