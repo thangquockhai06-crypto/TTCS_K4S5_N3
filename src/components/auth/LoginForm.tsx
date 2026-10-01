@@ -119,15 +119,6 @@ export const LoginForm: React.FC = () => {
     setAuthError(null);
   };
 
-  const handleSimulateLockout = (): void => {
-    setFailedAttempts(MAX_ATTEMPTS);
-    window.localStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, String(MAX_ATTEMPTS));
-    startCountdown(LOCKOUT_DURATION_SECONDS);
-    setAuthError(
-      '[S1-01 Demo] Đã kích hoạt giả lập nhập sai 5 lần — Khóa tài khoản 15 phút (900 giây).'
-    );
-  };
-
   const handleUnlockDemo = (): void => {
     setFailedAttempts(0);
     resetCountdown();
@@ -268,14 +259,9 @@ export const LoginForm: React.FC = () => {
             <span>Duy trì phiên đăng nhập 30 ngày</span>
           </label>
 
-          <button
-            type="button"
-            onClick={handleSimulateLockout}
-            className={styles.loginForm__simulateLockBtn}
-            title="Kiểm thử S1-01: Kích hoạt khóa tài khoản 15 phút"
-          >
-            Giả lập khóa 15p (S1-01)
-          </button>
+          <Link to="/forgot-password" className={styles.loginForm__simulateLockBtn}>
+            Quên mật khẩu
+          </Link>
         </div>
 
         <Button

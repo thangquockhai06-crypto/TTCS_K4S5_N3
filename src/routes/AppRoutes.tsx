@@ -14,6 +14,8 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { UserManagementPage } from '../pages/UserManagementPage';
+import { ForgotPasswordPage } from '../features/auth/forgot-password/ForgotPasswordPage';
+import { ResetPasswordPage } from '../features/auth/forgot-password/ResetPasswordPage';
 
 interface IProtectedRouteProps {
   children: React.ReactElement;
@@ -32,6 +34,8 @@ export const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route
         path="/"
