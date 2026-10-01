@@ -18,6 +18,7 @@ import { UserManagementPanel } from '../components/users/UserManagementPanel';
 import { useCRMData } from '../context/CRMDataContext';
 import { useAuth } from '../hooks/useAuth';
 import { INotificationPreference, ISecuritySession } from '../interfaces';
+import { ChangePasswordForm } from '../features/change-password';
 import styles from './SettingsPage.module.css';
 
 type SettingsSectionType = 'profile' | 'appearance' | 'notification' | 'security' | 'users';
@@ -519,6 +520,8 @@ export const SettingsPage: React.FC = () => {
                   </button>
                 </div>
               </Card>
+
+              <ChangePasswordForm />
 
               {/* Active Sessions */}
               <Card padding="lg" className={styles.panelStack}>
