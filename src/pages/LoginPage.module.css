@@ -1,0 +1,77 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 32px 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.loginHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.brandTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.brandSubtitle {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.formWrapper {
+  width: 100%;
+}
+
+.loginFooter {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 480px) {
+  .loginContainer {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
+  .loginCard {
+    padding: 20px 16px;
+    border-radius: 6px;
+  }
+
+  .brandTitle {
+    font-size: 1.15rem;
+  }
+}

@@ -1,0 +1,315 @@
+.loginCard {
+  width: 100%;
+  max-width: 450px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 32px 30px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loginCard__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loginCard__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.loginCard__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.loginCard__subtitle {
+  font-size: 0.86rem;
+  color: var(--color-text-secondary);
+}
+
+.lockoutBanner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.1));
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lockoutBanner__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.lockoutBanner__iconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: rgba(239, 68, 68, 0.16);
+  color: var(--color-danger);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lockoutBanner__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #B91C1C;
+}
+
+.lockoutBanner__desc {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.lockoutBanner__timerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(239, 68, 68, 0.25);
+}
+
+.lockoutBanner__clock {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.lockoutBanner__clockLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.lockoutBanner__clockValue {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+.lockoutBanner__seconds {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.lockoutBanner__resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.lockoutBanner__resetBtn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.lockoutBanner__progressTrack {
+  width: 100%;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background-color: rgba(239, 68, 68, 0.15);
+  overflow: hidden;
+}
+
+.lockoutBanner__progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #EF4444, #F59E0B);
+  transition: width 0.4s linear;
+}
+
+.errorAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-danger-soft);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #B91C1C;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.errorAlert__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginForm__eyeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  padding: 4px;
+}
+
+.loginForm__eyeBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.loginForm__optionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.loginForm__checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.loginForm__simulateLockBtn {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.demoCredentials {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demoCredentials__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.demoCredentials__singleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  text-align: left;
+  transition: all 0.16s ease;
+}
+
+.demoCredentials__singleBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.demoCredentials__left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demoCredentials__name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.demoCredentials__email {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.demoCredentials__role {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.switchAuthRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+}
+
+.switchAuthLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.switchAuthLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 22px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .loginCard__title {
+    font-size: 1.35rem;
+  }
+
+  .switchAuthRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
