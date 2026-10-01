@@ -11,14 +11,17 @@ import {
   RefreshCw,
   ShieldCheck,
   User,
+  Users,
 } from 'lucide-react';
 import { Avatar, Badge, Button, Card, Input } from '../components/common';
+import { UserManagementPanel } from '../components/users/UserManagementPanel';
 import { useCRMData } from '../context/CRMDataContext';
 import { useAuth } from '../hooks/useAuth';
 import { INotificationPreference, ISecuritySession } from '../interfaces';
+import { ChangePasswordForm } from '../features/change-password';
 import styles from './SettingsPage.module.css';
 
-type SettingsSectionType = 'profile' | 'appearance' | 'notification' | 'security';
+type SettingsSectionType = 'profile' | 'appearance' | 'notification' | 'security' | 'users';
 
 const INITIAL_NOTIF_PREFS: ReadonlyArray<INotificationPreference> = [
   {
@@ -198,6 +201,20 @@ export const SettingsPage: React.FC = () => {
             <div>
               <strong>Bảo mật & Phiên JWT</strong>
               <span>Xác thực 2 lớp & Token S1-02</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'users' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('users')}
+          >
+            <Users size={17} />
+            <div>
+              <strong>Quản trị Người dùng & Bàn giao</strong>
+              <span>Vai trò, Nhóm KD & Khóa tài khoản</span>
             </div>
           </button>
         </nav>
@@ -504,6 +521,8 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </Card>
 
+              <ChangePasswordForm />
+
               {/* Active Sessions */}
               <Card padding="lg" className={styles.panelStack}>
                 <div className={styles.securityHeader}>
@@ -558,6 +577,16 @@ export const SettingsPage: React.FC = () => {
                   ))}
                 </div>
               </Card>
+            </motion.div>
+          )}
+
+          {activeSection === 'users' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={styles.panelStack}
+            >
+              <UserManagementPanel />
             </motion.div>
           )}
         </div>

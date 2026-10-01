@@ -10,6 +10,7 @@ import {
   Plus,
   Settings,
   ShieldCheck,
+  UserCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -37,6 +38,12 @@ const NAV_ITEMS: ReadonlyArray<INavItem> = [
     label: 'Tổng quan',
     path: '/dashboard',
     icon: <LayoutDashboard size={19} />,
+  },
+  {
+    label: 'Quản lý Người dùng',
+    path: '/users',
+    icon: <UserCheck size={19} />,
+    badge: '45',
   },
   {
     label: 'Khách hàng',
