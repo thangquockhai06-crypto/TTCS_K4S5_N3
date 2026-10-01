@@ -8,11 +8,11 @@ import {
   Compass,
   Plus,
   RefreshCw,
-  RotateCcw,
   ShieldAlert,
   ShieldCheck,
   Users,
   X,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { UserActivationModal } from '../components/users/UserActivationModal';
 import { UserDetailModal } from '../components/users/UserDetailModal';
@@ -20,6 +20,8 @@ import { UserFilterBar } from '../components/users/UserFilterBar';
 import { UserModal } from '../components/users/UserModal';
 import { UserPagination } from '../components/users/UserPagination';
 import { UserTable } from '../components/users/UserTable';
+import { AssignRoleModal } from '../components/users/AssignRoleModal';
+import { ExcelImportModal } from '../components/users/ExcelImportModal';
 import { UserManagementPanel } from '../components/users/UserManagementPanel';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -28,7 +30,6 @@ import {
   IUserItem,
   IUserUpdateInput,
 } from '../interfaces/user-management.interface';
-import { getStoredUsers, resetUsersToDefault } from '../mock/users.mock';
 import { userService } from '../services/userService';
 import styles from './UserManagementPage.module.css';
 
@@ -56,7 +57,9 @@ export const UserManagementPage: React.FC = () => {
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<IUserItem | null>(null);
+  const [assignRoleUser, setAssignRoleUser] = useState<IUserItem | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<IUserItem | null>(null);
   const [createdUserSuccess, setCreatedUserSuccess] = useState<{
     user: IUserItem;
@@ -90,13 +93,12 @@ export const UserManagementPage: React.FC = () => {
       setTotalFiltered(result.total);
       setTotalPages(result.totalPages);
 
-      // Tính toán số liệu thống kê từ toàn bộ kho dữ liệu
-      const all = getStoredUsers();
+      // Tính toán số liệu thống kê từ danh sách hiện tại
       setStats({
-        total: all.length,
-        sales: all.filter((u) => u.roles.includes('sales')).length,
-        managers: all.filter((u) => u.roles.includes('manager')).length,
-        pending: all.filter((u) => u.status === 'pending_activation').length,
+        total: result.total,
+        sales: result.data.filter((u) => u.roles.some((r) => r.toLowerCase().includes('sales'))).length,
+        managers: result.data.filter((u) => u.roles.some((r) => r.toLowerCase().includes('manager') || r.toLowerCase().includes('admin') || r.toLowerCase().includes('leader'))).length,
+        pending: result.data.filter((u) => u.status === 'pending_activation' || u.status === 'locked').length,
       });
     } catch (err: any) {
       showToast('error', err.message || 'Không thể tải danh sách người dùng.');
@@ -200,19 +202,7 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-  // Khôi phục dữ liệu mẫu
-  const handleResetData = (): void => {
-    const confirm = window.confirm(
-      'Khôi phục danh sách người dùng về trạng thái mặc định (45 người dùng ban đầu)?'
-    );
-    if (!confirm) return;
-
-    resetUsersToDefault();
-    showToast('success', 'Đã khôi phục dữ liệu người dùng về trạng thái mẫu ban đầu.');
-    fetchUsers();
-  };
-
-  const allEmails = getStoredUsers().map((u) => u.email);
+  const allEmails = users.map((u) => u.email);
 
   return (
     <div className={styles.pageContainer}>
@@ -310,6 +300,17 @@ export const UserManagementPage: React.FC = () => {
             <span>Thêm người dùng mới</span>
           </button>
 
+          {/* Nhập Excel (S2-01) */}
+          <button
+            type="button"
+            className={styles.btnSecondary}
+            onClick={() => setIsExcelModalOpen(true)}
+            title="Nhập danh sách người dùng từ tệp Excel / CSV (S2-01)"
+          >
+            <FileSpreadsheet size={16} style={{ color: '#16a34a' }} />
+            <span>Nhập Excel</span>
+          </button>
+
           {/* Nút thử nghiệm màn hình 403 Forbidden */}
           <button
             type="button"
@@ -332,16 +333,7 @@ export const UserManagementPage: React.FC = () => {
             <span>Thử lỗi 404</span>
           </button>
 
-          {/* Reset dữ liệu mẫu */}
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={handleResetData}
-            title="Khôi phục danh sách người dùng mẫu (45 người dùng)"
-          >
-            <RotateCcw size={15} />
-            <span>Dữ liệu mẫu</span>
-          </button>
+
         </div>
       </div>
 
@@ -414,6 +406,7 @@ export const UserManagementPage: React.FC = () => {
               onToggleStatus={handleToggleStatus}
               onDelete={handleDeleteUser}
               onResendActivation={handleResendActivation}
+              onAssignRole={(u) => setAssignRoleUser(u)}
             />
 
             <UserPagination
@@ -427,6 +420,25 @@ export const UserManagementPage: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Modal Phân vai trò & Nhóm (S1-09) */}
+      <AssignRoleModal
+        isOpen={Boolean(assignRoleUser)}
+        onClose={() => setAssignRoleUser(null)}
+        user={assignRoleUser}
+        currentUserId={currentAuthUser?.id}
+        currentUserEmail={currentAuthUser?.email}
+        onSave={async (userId, roles, team) => {
+          const res = await userService.updateUser(
+            userId,
+            { roles, group: team },
+            currentAuthUser?.id,
+            currentAuthUser?.email
+          );
+          showToast('success', res.message || 'Cập nhật phân quyền thành công.');
+          fetchUsers();
+        }}
+      />
 
       {/* Modal Thêm người dùng mới */}
       <UserModal
@@ -463,6 +475,16 @@ export const UserManagementPage: React.FC = () => {
         isOpen={Boolean(selectedUserDetail)}
         onClose={() => setSelectedUserDetail(null)}
         user={selectedUserDetail}
+      />
+
+      {/* Modal Nhập dữ liệu Excel / CSV (S2-01) */}
+      <ExcelImportModal
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onSuccess={() => {
+          fetchUsers();
+          showToast('success', 'Nhập danh sách người dùng thành công.');
+        }}
       />
         </>
       )}

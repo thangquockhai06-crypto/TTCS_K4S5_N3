@@ -1,278 +1,367 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Calendar,
-  RefreshCw,
-  ShieldAlert,
-  UserCheck,
-  Tag,
-  ArrowRight,
-} from 'lucide-react';
-import { IAuditLog, AuditTargetType } from '../../interfaces/audit.interface';
-import { INITIAL_MOCK_AUDIT_LOGS } from '../../mock/audit.mock';
-import styles from './AuditLogViewer.module.css';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Search, Eye, RefreshCw, AlertCircle } from 'lucide-react';
+import { IAuditLogItem } from '../../interfaces';
+import { sprint2Service } from '../../services/sprint2Service';
+import { DiffViewerModal } from './DiffViewerModal';
 
-interface IAuditLogViewerProps {
-  initialLogs?: IAuditLog[];
-}
+export const AuditLogViewer: React.FC = () => {
+  const [logs, setLogs] = useState<IAuditLogItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-const TARGET_TYPES: ReadonlyArray<{ label: string; value: AuditTargetType }> = [
-  { label: 'Tất cả đối tượng', value: 'all' },
-  { label: 'Chiết khấu & Deals', value: 'deals' },
-  { label: 'Chỉ tiêu Doanh thu', value: 'quota' },
-  { label: 'Quyền sở hữu Khách hàng', value: 'customers' },
-  { label: 'Vai trò Người dùng', value: 'users' },
-];
+  // Filters
+  const [performedBy, setPerformedBy] = useState('');
+  const [targetType, setTargetType] = useState('all');
 
-export const AuditLogViewer: React.FC<IAuditLogViewerProps> = ({
-  initialLogs = INITIAL_MOCK_AUDIT_LOGS,
-}) => {
-  const [logs, setLogs] = useState<IAuditLog[]>(initialLogs);
-  const [performedByQuery, setPerformedByQuery] = useState<string>('');
-  const [selectedTargetType, setSelectedTargetType] = useState<AuditTargetType>('all');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Selected for diff modal
+  const [selectedLog, setSelectedLog] = useState<IAuditLogItem | null>(null);
 
-  // Fetch real audit logs from backend if available, fallback to mock state
-  const fetchAuditLogs = async (): Promise<void> => {
+  const fetchLogs = useCallback(async () => {
     setIsLoading(true);
+    setErrorMsg(null);
     try {
-      const queryParams = new URLSearchParams();
-      if (performedByQuery.trim()) queryParams.append('performed_by', performedByQuery.trim());
-      if (selectedTargetType !== 'all') queryParams.append('target_type', selectedTargetType);
-      if (startDate) queryParams.append('start_date', new Date(startDate).toISOString());
-      if (endDate) queryParams.append('end_date', new Date(endDate).toISOString());
-
-      const res = await fetch(`/api/audit-logs?${queryParams.toString()}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-          setLogs(json.data);
-        }
-      }
-    } catch {
-      // Keep static client filtering on initial logs if backend endpoint is offline in local dev mode
+      const data = await sprint2Service.getAuditLogs({
+        performed_by: performedBy || undefined,
+        target_type: targetType !== 'all' ? targetType : undefined,
+        page,
+        limit,
+      });
+      setLogs(data.items);
+      setTotal(data.total);
+      setTotalPages(data.pages || 1);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.detail || err.message || 'Lỗi khi tải nhật ký kiểm toán.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [performedBy, targetType, page, limit]);
 
   useEffect(() => {
-    void fetchAuditLogs();
-  }, [selectedTargetType, startDate, endDate]);
+    fetchLogs();
+  }, [fetchLogs]);
 
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
-      // 1. Filter by performed_by (User ID, name, email)
-      if (performedByQuery.trim()) {
-        const q = performedByQuery.toLowerCase().trim();
-        const matchUser =
-          log.performed_by.toLowerCase().includes(q) ||
-          (log.user_name ?? '').toLowerCase().includes(q) ||
-          (log.user_email ?? '').toLowerCase().includes(q);
-        if (!matchUser) return false;
-      }
-
-      // 2. Filter by target_type
-      if (selectedTargetType !== 'all') {
-        if (selectedTargetType === 'quota') {
-          if (log.field_name !== 'quota') return false;
-        } else if (log.target_type !== selectedTargetType) {
-          return false;
-        }
-      }
-
-      // 3. Filter by Date range
-      const logDate = new Date(log.created_at).getTime();
-      if (startDate) {
-        const startTimestamp = new Date(startDate).getTime();
-        if (logDate < startTimestamp) return false;
-      }
-      if (endDate) {
-        const endTimestamp = new Date(endDate).getTime() + 86400000; // End of selected day
-        if (logDate > endTimestamp) return false;
-      }
-
-      return true;
-    });
-  }, [logs, performedByQuery, selectedTargetType, startDate, endDate]);
-
-  const getFieldBadgeClass = (fieldName: string): string => {
-    switch (fieldName) {
-      case 'discount':
-        return styles['fieldBadge--discount'];
-      case 'quota':
-        return styles['fieldBadge--quota'];
-      case 'owner':
-        return styles['fieldBadge--owner'];
-      case 'role':
-        return styles['fieldBadge--role'];
-      default:
-        return '';
-    }
-  };
-
-  const getFieldLabel = (fieldName: string): string => {
-    switch (fieldName) {
-      case 'discount':
-        return 'Chiết khấu (%)';
-      case 'quota':
-        return 'Chỉ tiêu (Quota)';
-      case 'owner':
-        return 'Quyền sở hữu dữ liệu';
-      case 'role':
-        return 'Vai trò người dùng';
-      default:
-        return fieldName;
+  const formatDateTime = (ts: string) => {
+    try {
+      const d = new Date(ts);
+      return d.toLocaleString('vi-VN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return ts;
     }
   };
 
   return (
-    <div className={styles.container}>
-      {/* Filter Toolbar */}
-      <div className={styles.filterHeader}>
-        <div className={styles.typeChips}>
-          {TARGET_TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              className={`${styles.chipBtn} ${
-                selectedTargetType === t.value ? styles.chipBtnActive : ''
-              }`}
-              onClick={() => setSelectedTargetType(t.value)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.filterRow}>
-          {/* Performer Search Filter */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>
-              <UserCheck size={14} />
-              Lọc theo người dùng thực hiện
-            </label>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Filter bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '12px 16px',
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Search performed by */}
+          <div style={{ position: 'relative', width: '220px' }}>
             <input
               type="text"
-              className={styles.textInput}
-              placeholder="Nhập ID, Tên hoặc Email người dùng..."
-              value={performedByQuery}
-              onChange={(e) => setPerformedByQuery(e.target.value)}
+              placeholder="Người thực hiện / Email..."
+              value={performedBy}
+              onChange={(e) => {
+                setPerformedBy(e.target.value);
+                setPage(1);
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 10px 6px 30px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                fontSize: '0.8rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <Search
+              size={14}
+              color="#94a3b8"
+              style={{ position: 'absolute', left: '9px', top: '8px' }}
             />
           </div>
 
-          {/* Start Date Filter */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>
-              <Calendar size={14} />
-              Từ thời điểm (Start Date)
-            </label>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
+          {/* Target Type Filter */}
+          <select
+            value={targetType}
+            onChange={(e) => {
+              setTargetType(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              padding: '6px 10px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.8rem',
+              backgroundColor: '#ffffff',
+              color: '#334155',
+              outline: 'none',
+            }}
+          >
+            <option value="all">Tất cả đối tượng</option>
+            <option value="deal">Phễu Cơ hội (Deal)</option>
+            <option value="customer">Khách hàng (Customer)</option>
+            <option value="user">Người dùng / Phân quyền (User)</option>
+            <option value="quota">Chỉ tiêu / Doanh số (Quota)</option>
+          </select>
+        </div>
 
-          {/* End Date Filter */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>
-              <Calendar size={14} />
-              Đến thời điểm (End Date)
-            </label>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             type="button"
-            className={styles.chipBtn}
-            onClick={() => void fetchAuditLogs()}
+            onClick={() => fetchLogs()}
             disabled={isLoading}
-            style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#334155',
+              fontSize: '0.8rem',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+            }}
           >
-            <RefreshCw size={14} className={isLoading ? 'spin' : ''} />
-            {isLoading ? 'Đang tải...' : 'Làm mới nhật ký'}
+            <RefreshCw size={13} className={isLoading ? 'spin' : ''} />
+            Làm mới
           </button>
         </div>
       </div>
 
-      {/* Audit Log Records Table */}
-      <div className={styles.tableWrapper}>
-        <table className={styles.table}>
-          <thead>
+      {errorMsg && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            color: '#b91c1c',
+            fontSize: '0.85rem',
+          }}
+        >
+          <AlertCircle size={16} />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Audit Log Table */}
+      <div
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+          overflowX: 'auto',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+          <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
             <tr>
-              <th>Thời điểm</th>
-              <th>Người thực hiện</th>
-              <th>Loại & ID Đối tượng</th>
-              <th>Trường nhạy cảm thay đổi</th>
-              <th>Snapshot Giá trị (Trước ➔ Sau)</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Thời gian</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Người thực hiện</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Hành động</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Đối tượng</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Trường sửa đổi</th>
+              <th style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>Giá trị cũ → mới</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', color: '#64748b', fontWeight: 600 }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {filteredLogs.length === 0 ? (
+            {isLoading ? (
               <tr>
-                <td colSpan={5} className={styles.emptyState}>
-                  <ShieldAlert size={32} style={{ marginBottom: '8px', color: '#94a3b8' }} />
-                  <div>Không tìm thấy nhật ký thay đổi nào khớp với bộ lọc.</div>
+                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                  Đang tải dữ liệu kiểm toán...
+                </td>
+              </tr>
+            ) : logs.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+                  Không có bản ghi nhật ký kiểm toán nào phù hợp với bộ lọc.
                 </td>
               </tr>
             ) : (
-              filteredLogs.map((item) => (
-                <tr key={item.id}>
-                  <td className={styles.timeCell}>
-                    {new Date(item.created_at).toLocaleString('vi-VN', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
+              logs.map((log) => (
+                <tr
+                  key={log.id}
+                  style={{
+                    borderBottom: '1px solid #f1f5f9',
+                    transition: 'background-color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <td style={{ padding: '10px 14px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                    {formatDateTime(log.timestamp)}
                   </td>
-                  <td>
-                    <div className={styles.performerCell}>
-                      <span className={styles.performerName}>
-                        {item.user_name || item.performed_by}
-                      </span>
-                      <span className={styles.performerEmail}>
-                        {item.user_email || `ID: ${item.performed_by}`}
-                      </span>
-                    </div>
+                  <td style={{ padding: '10px 14px', fontWeight: 500, color: '#1e293b' }}>
+                    <div>{log.user_name || log.performed_by}</div>
+                    {log.user_email && <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{log.user_email}</div>}
                   </td>
-                  <td>
-                    <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>
-                      {item.target_type}
-                    </span>{' '}
-                    <span style={{ color: '#64748b', fontSize: '0.75rem' }}>
-                      (#{item.target_id})
+                  <td style={{ padding: '10px 14px' }}>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        backgroundColor:
+                          log.action === 'CREATE'
+                            ? '#dcfce7'
+                            : log.action === 'DELETE'
+                            ? '#fee2e2'
+                            : '#e0f2fe',
+                        color:
+                          log.action === 'CREATE'
+                            ? '#15803d'
+                            : log.action === 'DELETE'
+                            ? '#b91c1c'
+                            : '#0369a1',
+                      }}
+                    >
+                      {log.action}
                     </span>
                   </td>
-                  <td>
-                    <span className={`${styles.fieldBadge} ${getFieldBadgeClass(item.field_name)}`}>
-                      <Tag size={12} />
-                      {getFieldLabel(item.field_name)}
-                    </span>
+                  <td style={{ padding: '10px 14px', color: '#334155' }}>
+                    <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{log.target_type}</span>{' '}
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>#{log.target_id.slice(0, 8)}</span>
                   </td>
-                  <td>
-                    <div className={styles.deltaBox}>
-                      <span className={styles.oldVal}>{item.old_value ?? 'N/A'}</span>
-                      <ArrowRight size={14} className={styles.arrow} />
-                      <span className={styles.newVal}>{item.new_value ?? 'N/A'}</span>
+                  <td style={{ padding: '10px 14px', color: '#475569' }}>
+                    {log.field_name ? (
+                      <code style={{ backgroundColor: '#f1f5f9', padding: '1px 5px', borderRadius: '3px', fontSize: '0.75rem' }}>
+                        {log.field_name}
+                      </code>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
+                  <td style={{ padding: '10px 14px', color: '#334155', maxWidth: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {log.old_value && (
+                        <span style={{ color: '#dc2626', textDecoration: 'line-through', fontSize: '0.75rem' }}>
+                          {log.old_value}
+                        </span>
+                      )}
+                      {log.old_value && log.new_value && <span>→</span>}
+                      {log.new_value && (
+                        <span style={{ color: '#16a34a', fontWeight: 600, fontSize: '0.75rem' }}>
+                          {log.new_value}
+                        </span>
+                      )}
+                      {!log.old_value && !log.new_value && <span style={{ color: '#94a3b8' }}>-</span>}
                     </div>
+                  </td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLog(log)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#2563eb',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Eye size={12} />
+                      So sánh Diff
+                    </button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+
+        {/* Pagination footer */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 16px',
+            borderTop: '1px solid #e2e8f0',
+            fontSize: '0.8rem',
+            color: '#64748b',
+          }}
+        >
+          <span>
+            Hiển thị <strong>{logs.length}</strong> / <strong>{total}</strong> bản ghi kiểm toán
+          </span>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              type="button"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '4px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                fontSize: '0.75rem',
+              }}
+            >
+              Trước
+            </button>
+            <span style={{ padding: '4px 8px' }}>
+              Trang {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '4px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                fontSize: '0.75rem',
+              }}
+            >
+              Sau
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Diff Viewer Modal */}
+      <DiffViewerModal
+        isOpen={Boolean(selectedLog)}
+        onClose={() => setSelectedLog(null)}
+        logItem={selectedLog}
+      />
     </div>
   );
 };

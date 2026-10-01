@@ -28,6 +28,7 @@ interface UserTableProps {
   onToggleStatus: (user: IUserItem) => void;
   onDelete: (user: IUserItem) => void;
   onResendActivation: (user: IUserItem) => void;
+  onAssignRole?: (user: IUserItem) => void;
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
@@ -39,6 +40,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onToggleStatus,
   onDelete,
   onResendActivation,
+  onAssignRole,
 }) => {
   const getRoleBadgeClass = (role: UserRoleType): string => {
     switch (role) {
@@ -174,15 +176,28 @@ export const UserTable: React.FC<UserTableProps> = ({
                       <Eye size={16} />
                     </button>
 
-                    {/* Sửa thông tin & cấp quyền */}
+                    {/* Sửa thông tin */}
                     <button
                       type="button"
                       className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
                       onClick={() => onEdit(u)}
-                      title="Chỉnh sửa tài khoản & phân quyền"
+                      title="Chỉnh sửa tài khoản"
                     >
                       <Edit3 size={16} />
                     </button>
+
+                    {/* Phân vai trò & nhóm (S1-09) */}
+                    {onAssignRole && (
+                      <button
+                        type="button"
+                        className={styles.actionBtn}
+                        onClick={() => onAssignRole(u)}
+                        title="Phân vai trò & nhóm kinh doanh (S1-09)"
+                        style={{ color: 'var(--color-primary)' }}
+                      >
+                        <Shield size={16} />
+                      </button>
+                    )}
 
                     {/* Gửi lại email kích hoạt (cho tài khoản pending) */}
                     {u.status === 'pending_activation' && (

@@ -19,6 +19,10 @@ import { Avatar } from '../common';
 import logoUrl from '../../assets/logo.svg';
 import styles from './Sidebar.module.css';
 
+import { useAuthorization } from '../../hooks/useAuthorization';
+import { IMenuItem } from '../../interfaces/menu.interface';
+import { Package, FileText } from 'lucide-react';
+
 export interface ISidebarProps {
   isCollapsed: boolean;
   isMobileOpen: boolean;
@@ -26,51 +30,71 @@ export interface ISidebarProps {
   onCloseMobile: () => void;
 }
 
-interface INavItem {
-  label: string;
-  path: string;
-  icon: React.ReactNode;
-  badge?: string;
-}
-
-const NAV_ITEMS: ReadonlyArray<INavItem> = [
+const ALL_MENU_ITEMS: ReadonlyArray<IMenuItem> = [
   {
+    id: 'dashboard',
     label: 'Tổng quan',
     path: '/dashboard',
     icon: <LayoutDashboard size={19} />,
+    requiredPermission: 'view_dashboard',
   },
   {
+    id: 'users',
     label: 'Quản lý Người dùng',
     path: '/users',
     icon: <UserCheck size={19} />,
+    requiredPermission: 'manage_sales_staff',
     badge: '45',
   },
   {
+    id: 'customers',
     label: 'Khách hàng',
     path: '/customers',
     icon: <Users size={19} />,
+    requiredPermission: 'manage_customers',
     badge: '50',
   },
   {
+    id: 'deals',
     label: 'Phễu Cơ hội (Deals)',
     path: '/deals',
     icon: <Briefcase size={19} />,
+    requiredPermission: 'manage_deals',
     badge: '12',
   },
   {
+    id: 'products',
+    label: 'Sản phẩm & Giá',
+    path: '/products',
+    icon: <Package size={19} />,
+    requiredPermission: 'manage_products',
+  },
+  {
+    id: 'activities',
     label: 'Nhật ký Hoạt động',
     path: '/activities',
     icon: <Activity size={19} />,
   },
   {
+    id: 'audit-logs',
+    label: 'Nhật ký Kiểm toán',
+    path: '/audit-logs',
+    icon: <FileText size={19} />,
+    requiredPermission: 'view_audit_logs',
+  },
+  {
+    id: 'reports',
     label: 'Báo cáo Doanh thu',
     path: '/reports',
     icon: <BarChart3 size={19} />,
+    requiredPermission: 'view_team_reports',
   },
   {
+    id: 'settings',
     label: 'Cài đặt Hệ thống',
     path: '/settings',
     icon: <Settings size={19} />,
+    requiredPermission: 'system_settings',
   },
 ];
 
@@ -81,7 +105,15 @@ export const Sidebar: React.FC<ISidebarProps> = ({
   onCloseMobile,
 }) => {
   const { user, logout, lastTokenRefresh } = useAuth();
+  const { hasPermission } = useAuthorization();
   const navigate = useNavigate();
+
+  const menuItems = React.useMemo(() => {
+    return ALL_MENU_ITEMS.filter((item) => {
+      if (!item.requiredPermission) return true;
+      return hasPermission(item.requiredPermission);
+    });
+  }, [hasPermission]);
 
   const handleLogout = (): void => {
     logout();
@@ -158,7 +190,7 @@ export const Sidebar: React.FC<ISidebarProps> = ({
         <nav className={styles.sidebar__nav} aria-label="Menu chính">
           <p className={styles.sidebar__sectionLabel}>PHÂN HỆ QUẢN TRỊ</p>
           <ul className={styles.sidebar__list}>
-            {NAV_ITEMS.map((item) => (
+            {menuItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
@@ -199,11 +231,11 @@ export const Sidebar: React.FC<ISidebarProps> = ({
               status="online"
             />
             <div className={styles.sidebar__userInfo}>
-              <p className={styles.sidebar__userName}>
+              <p className={styles.sidebar__userName} title={user?.fullName ?? 'Quản Trị Viên'}>
                 {user?.fullName ?? 'Quản Trị Viên Hệ Thống'}
               </p>
-              <p className={styles.sidebar__userRole}>
-                {user?.role ?? 'Super Admin'}
+              <p className={styles.sidebar__userRole} title={`${user?.role ?? 'Super Admin'} · ${user?.department || 'Ban Quản trị'}`}>
+                {user?.role ?? 'Super Admin'} · {user?.department || 'Ban Quản trị'}
               </p>
             </div>
             <button

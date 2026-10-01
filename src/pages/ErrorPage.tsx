@@ -13,7 +13,7 @@ import {
 import styles from './ErrorPage.module.css';
 
 interface ErrorPageProps {
-  code: 401 | 403 | 404;
+  code: 401 | 403 | 404 | 500;
 }
 
 export const ErrorPage: React.FC<ErrorPageProps> = ({ code }) => {
@@ -75,6 +75,22 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({ code }) => {
       ],
       primaryBtnText: 'Về Bảng điều khiển',
       primaryAction: () => navigate('/dashboard'),
+    },
+    500: {
+      badge: 'Mã lỗi 500 · Sự cố máy chủ',
+      badgeClass: styles.badge403,
+      iconClass: styles.iconWrapper403,
+      icon: <ShieldAlert size={36} />,
+      title: 'Đã xảy ra sự cố từ máy chủ hệ thống',
+      description:
+        'Máy chủ Backend đang gặp sự cố tạm thời hoặc cơ sở dữ liệu đang bận xử lý. Yêu cầu của bạn chưa thể hoàn thành lúc này.',
+      suggestions: [
+        'Nhấn nút "Tải lại trang" để thử gửi lại yêu cầu.',
+        'Kiểm tra dịch vụ Backend (Python FastAPI tại cổng 8000).',
+        'Nếu sự cố tiếp tục xảy ra, vui lòng thông báo cho bộ phận Kỹ thuật hệ thống.',
+      ],
+      primaryBtnText: 'Tải lại trang',
+      primaryAction: () => window.location.reload(),
     },
   };
 

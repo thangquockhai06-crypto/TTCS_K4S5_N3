@@ -95,6 +95,13 @@ class UserService:
         - Gửi thông tin kích hoạt và mật khẩu tạm thời qua EmailService.
         - Kiểm tra tính hợp lệ của vai trò và nhóm (Trưởng nhóm bắt buộc phải có nhóm).
         """
+        # 0. Kiem tra quyen quan tri
+        if current_user and current_user.role.strip().lower() not in ADMIN_ROLES:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bạn không có quyền thực hiện thao tác quản trị này.",
+            )
+
         # 1. Kiểm tra tính duy nhất của Email
         normalized_email: str = payload.email.strip().lower()
         existing_user = UserRepository.get_by_email(db, normalized_email)
@@ -180,9 +187,16 @@ class UserService:
         """
         target_user = UserService.get_user_by_id(db, user_id)
 
-        # 1. BẢO VỆ ADMIN: Quản trị viên không thể tự hạ quyền của chính mình
+        # 1. BẢO VỆ ADMIN & KIỂM TRA QUYỀN
         is_self_update = (current_user.id == target_user.id)
         current_is_admin = target_user.role.strip().lower() in ADMIN_ROLES
+        caller_is_admin = current_user.role.strip().lower() in ADMIN_ROLES
+
+        if not is_self_update and not caller_is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bạn không có quyền chỉnh sửa thông tin người dùng khác.",
+            )
 
         if is_self_update and current_is_admin:
             if payload.role and payload.role.strip().lower() not in ADMIN_ROLES:
@@ -289,6 +303,13 @@ class UserService:
         Vô hiệu hóa tài khoản và bàn giao toàn bộ dữ liệu (Khách hàng, Cơ hội, Báo giá)
         cho người kế thừa trong một giao dịch duy nhất (Atomic Transaction).
         """
+        # 0. Kiểm tra quyền quản trị
+        if current_user.role.strip().lower() not in ADMIN_ROLES:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bạn không có quyền vô hiệu hóa tài khoản người dùng.",
+            )
+
         # 1. Kiểm tra tài khoản mục tiêu
         target_user = UserService.get_user_by_id(db, target_user_id)
 
@@ -347,6 +368,12 @@ class UserService:
         - Nếu người dùng sở hữu dữ liệu khách hàng hoặc cơ hội, sử dụng Soft-Delete (inactive).
         - Quản trị viên không thể tự xóa chính mình.
         """
+        if current_user.role.strip().lower() not in ADMIN_ROLES:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bạn không có quyền xóa tài khoản người dùng.",
+            )
+
         target_user = UserService.get_user_by_id(db, user_id)
 
         if current_user.id == target_user.id and target_user.role.strip().lower() in ADMIN_ROLES:

@@ -6,6 +6,16 @@ export interface ILoginPayload {
 
 export type LoginRequestDTO = ILoginPayload;
 
+export interface IForgotPasswordRequest {
+  email: string;
+}
+
+export interface IResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmPassword?: string;
+}
+
 export interface IRegisterPayload {
   fullName: string;
   email: string;
@@ -24,6 +34,7 @@ export interface IUser {
   department: string;
   avatarUrl: string;
   workspaceName: string;
+  phone?: string;
 }
 
 export interface IAuthResponse {

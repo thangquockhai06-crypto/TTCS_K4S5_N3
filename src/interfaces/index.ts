@@ -6,3 +6,5 @@ export * from './settings.interface';
 export * from './audit.interface';
 export * from './user-management.interface';
 export * from './userManagement.interface';
+export * from './menu.interface';
+export * from './sprint2.interface';

@@ -9,7 +9,6 @@ import {
   KeyRound,
   Lock,
   Mail,
-  RotateCcw,
   ShieldAlert,
   Sparkles,
   UserPlus,
@@ -133,20 +132,7 @@ export const LoginForm: React.FC = () => {
     setAuthError(null);
   };
 
-  const handleSimulateLockout = (): void => {
-    setFailedAttempts(MAX_ATTEMPTS);
-    window.localStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, String(MAX_ATTEMPTS));
-    startCountdown(LOCKOUT_DURATION_SECONDS);
-    setAuthError(
-      '[S1-01 Demo] Đã kích hoạt giả lập nhập sai 5 lần — Khóa tài khoản 15 phút (900 giây).'
-    );
-  };
 
-  const handleUnlockDemo = (): void => {
-    setFailedAttempts(0);
-    resetCountdown();
-    setAuthError(null);
-  };
 
   const isEmailValid =
     formState.email.trim().length > 0 && !validateField('email', formState.email);
@@ -203,14 +189,7 @@ export const LoginForm: React.FC = () => {
               <span className={styles.lockoutBanner__seconds}>({secondsLeft}s)</span>
             </div>
 
-            <button
-              type="button"
-              onClick={handleUnlockDemo}
-              className={styles.lockoutBanner__resetBtn}
-            >
-              <RotateCcw size={13} />
-              Mở khóa ngay (Reset Demo)
-            </button>
+
           </div>
 
           <div className={styles.lockoutBanner__progressTrack}>
@@ -279,17 +258,21 @@ export const LoginForm: React.FC = () => {
                 setFormState((prev) => ({ ...prev, rememberMe: e.target.checked }))
               }
             />
-            <span>Duy trì phiên đăng nhập 30 ngày</span>
+            <span>Duy trì đăng nhập 30 ngày</span>
           </label>
-
-          <button
-            type="button"
-            onClick={handleSimulateLockout}
-            className={styles.loginForm__simulateLockBtn}
-            title="Kiểm thử S1-01: Kích hoạt khóa tài khoản 15 phút"
-          >
-            Giả lập khóa 15p (S1-01)
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link
+              to="/forgot-password"
+              style={{
+                fontSize: '0.8125rem',
+                color: 'var(--color-primary)',
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
+              Quên mật khẩu?
+            </Link>
+          </div>
         </div>
 
         <Button

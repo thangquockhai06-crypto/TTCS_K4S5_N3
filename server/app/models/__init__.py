@@ -7,7 +7,11 @@ from app.models.activity import Activity, Note
 from app.models.quotation import Quotation
 from app.models.role import Role, user_roles
 from app.models.team import Team, user_teams
-from app.models.audit_log import AuditLog
+from app.models.product import Product, PriceList
+from app.models.category import Category
+from app.models.custom_field import CustomField
+from app.models.pipeline_stage import PipelineStage
+from app.models.win_loss import WinLossReason, Competitor
 
 __all__ = [
     "Base",
@@ -23,4 +27,11 @@ __all__ = [
     "Team",
     "user_teams",
     "AuditLog",
+    "Product",
+    "PriceList",
+    "Category",
+    "CustomField",
+    "PipelineStage",
+    "WinLossReason",
+    "Competitor",
 ]

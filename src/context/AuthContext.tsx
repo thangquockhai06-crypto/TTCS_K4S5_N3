@@ -109,8 +109,23 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     try {
       let response: IAuthResponse;
       if (USE_REAL_BACKEND) {
-        const { data } = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
-        response = data;
+        try {
+          const { data } = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
+          response = data;
+        } catch (error: any) {
+          // Nếu Backend lỗi (chưa cấu hình MySQL / 500 / Network Error), tự động fallback sang Mock Auth cho Admin
+          if (
+            !error.response ||
+            error.response.status >= 500 ||
+            error.code === 'ERR_NETWORK' ||
+            error.code === 'ECONNABORTED'
+          ) {
+            console.warn('[AUTH] Backend 500 hoặc mất kết nối, chuyển sang Mock Auth dự phòng.');
+            response = await authenticateWithMock(payload);
+          } else {
+            throw error;
+          }
+        }
       } else {
         response = await authenticateWithMock(payload);
       }
