@@ -193,7 +193,7 @@ export const RegisterForm: React.FC = () => {
           />
 
           <Input
-            label="Email công việc *"
+            label="Email *"
             type="email"
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}

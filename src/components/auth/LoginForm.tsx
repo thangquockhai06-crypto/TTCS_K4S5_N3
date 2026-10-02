@@ -50,7 +50,7 @@ export const LoginForm: React.FC = () => {
   const validateField = (name: 'email' | 'password', value: string): string | undefined => {
     if (name === 'email') {
       const trimmed = value.trim();
-      if (!trimmed) return 'Vui lòng nhập địa chỉ email công việc.';
+      if (!trimmed) return 'Vui lòng nhập địa chỉ email.';
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(trimmed)) return 'Địa chỉ email không đúng định dạng.';
       return undefined;
@@ -77,6 +77,7 @@ export const LoginForm: React.FC = () => {
     setFieldErrors({ email: emailErr, password: passwordErr });
 
     if (emailErr || passwordErr) {
+      setAuthError('Vui lòng nhập đúng email/mật khẩu.');
       return;
     }
 
@@ -86,13 +87,11 @@ export const LoginForm: React.FC = () => {
       resetCountdown();
       navigate('/dashboard');
     } catch (err: unknown) {
-      let serverMsg: string | undefined;
       let is429 = false;
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as {
           response?: { status?: number; data?: { detail?: string; message?: string } };
         };
-        serverMsg = axiosErr.response?.data?.detail || axiosErr.response?.data?.message;
         if (axiosErr.response?.status === 429) {
           is429 = true;
         }
@@ -105,15 +104,10 @@ export const LoginForm: React.FC = () => {
       if (nextAttempts >= MAX_ATTEMPTS || is429) {
         startCountdown(LOCKOUT_DURATION_SECONDS);
         setAuthError(
-          serverMsg ||
-            'Bạn đã nhập sai quá 5 lần quy định. Tài khoản tạm thời bị khóa trong 15 phút để bảo mật.'
+          'Bạn đã nhập sai 5 lần. Tài khoản tạm thời bị khóa trong 15 phút và chỉ đợi đến khi hết thời gian mới có thể nhập lại.'
         );
       } else {
-        const remaining = MAX_ATTEMPTS - nextAttempts;
-        setAuthError(
-          serverMsg ||
-            `Email hoặc mật khẩu không chính xác. Còn ${remaining} lần thử trước khi khóa bảo mật 15 phút.`
-        );
+        setAuthError('Vui lòng nhập đúng email/mật khẩu.');
       }
     }
   };
@@ -155,11 +149,10 @@ export const LoginForm: React.FC = () => {
             </div>
             <div className={styles.lockoutBanner__text}>
               <h2 className={styles.lockoutBanner__title}>
-                Tài khoản tạm khóa bảo mật (Chính sách 15 phút)
+                Tài khoản tạm khóa bảo mật (15 phút)
               </h2>
               <p className={styles.lockoutBanner__desc}>
-                Phát hiện 5 lần đăng nhập thất bại liên tiếp. Vui lòng chờ đồng hồ đếm ngược kết
-                thúc (`useCountdown(15 * 60)`).
+                Phát hiện 5 lần đăng nhập thất bại. Vui lòng chờ hết thời gian đếm ngược để thử lại.
               </p>
             </div>
           </div>
@@ -194,7 +187,7 @@ export const LoginForm: React.FC = () => {
 
       <form className={styles.loginForm} onSubmit={(e) => void handleSubmit(e)} noValidate>
         <Input
-          label="Email công việc"
+          label="Email"
           type="email"
           name="email"
           autoComplete="email"

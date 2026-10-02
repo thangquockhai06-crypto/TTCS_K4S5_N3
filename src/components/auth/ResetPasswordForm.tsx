@@ -57,7 +57,10 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
     }
 
     setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      setServerError('Vui lòng nhập đúng email/mật khẩu.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -69,12 +72,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
       setIsSuccess(true);
       if (onSuccess) onSuccess();
     } catch (err: unknown) {
-      let msg = 'Đặt lại mật khẩu thất bại. Mã xác thực có thể đã hết hạn hoặc không hợp lệ.';
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axErr = err as { response?: { data?: { detail?: string; message?: string } } };
-        msg = axErr.response?.data?.detail || axErr.response?.data?.message || msg;
-      }
-      setServerError(msg);
+      setServerError('Vui lòng nhập đúng email/mật khẩu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +140,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+              className={styles.loginForm__eyeBtn}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -167,7 +165,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+              className={styles.loginForm__eyeBtn}
             >
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
