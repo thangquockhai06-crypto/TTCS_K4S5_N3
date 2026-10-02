@@ -125,6 +125,7 @@ export const RegisterForm: React.FC = () => {
     setErrors(nextErrors);
 
     if (Object.values(nextErrors).some((msg) => Boolean(msg))) {
+      setSubmitError('Vui lòng nhập đủ thông tin.');
       return;
     }
 
@@ -187,7 +188,6 @@ export const RegisterForm: React.FC = () => {
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
             error={errors.fullName}
-            isValid={formData.fullName.trim().length >= 3 && !errors.fullName}
             leftIcon={<User size={16} />}
             placeholder="VD: Trần Minh Hoàng"
           />
@@ -198,7 +198,6 @@ export const RegisterForm: React.FC = () => {
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
             error={errors.email}
-            isValid={formData.email.includes('@') && !errors.email}
             leftIcon={<Mail size={16} />}
             placeholder="hoang.tran@congty.vn"
           />
@@ -210,7 +209,6 @@ export const RegisterForm: React.FC = () => {
             value={formData.companyName}
             onChange={(e) => handleFieldChange('companyName', e.target.value)}
             error={errors.companyName}
-            isValid={formData.companyName.trim().length >= 2 && !errors.companyName}
             leftIcon={<Building2 size={16} />}
             placeholder="VD: Công ty Công nghệ Nexus"
           />
@@ -223,7 +221,6 @@ export const RegisterForm: React.FC = () => {
             value={formData.password}
             onChange={(e) => handleFieldChange('password', e.target.value)}
             error={errors.password}
-            isValid={formData.password.length >= 8 && !errors.password}
             leftIcon={<Lock size={16} />}
             placeholder="Tối thiểu 8 ký tự"
             rightElement={
@@ -233,7 +230,7 @@ export const RegisterForm: React.FC = () => {
                 className={styles.eyeBtn}
                 aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
             }
           />
@@ -244,11 +241,6 @@ export const RegisterForm: React.FC = () => {
             value={formData.confirmPassword}
             onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
             error={errors.confirmPassword}
-            isValid={
-              formData.confirmPassword.length >= 8 &&
-              formData.confirmPassword === formData.password &&
-              !errors.confirmPassword
-            }
             leftIcon={<Lock size={16} />}
             placeholder="Nhập lại mật khẩu"
             rightElement={
@@ -258,7 +250,7 @@ export const RegisterForm: React.FC = () => {
                 className={styles.eyeBtn}
                 aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
             }
           />

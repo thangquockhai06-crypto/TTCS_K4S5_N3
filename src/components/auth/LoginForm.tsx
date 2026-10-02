@@ -13,7 +13,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useCountdown } from '../../hooks/useCountdown';
 import { ILoginPayload } from '../../interfaces';
-import { ADMIN_ACCOUNT, AUTH_STORAGE_KEYS } from '../../mock/auth.mock';
+import { AUTH_STORAGE_KEYS } from '../../mock/auth.mock';
 import { Button, Input } from '../common';
 import styles from './LoginForm.module.css';
 
@@ -34,8 +34,8 @@ export const LoginForm: React.FC = () => {
   } = useCountdown(LOCKOUT_DURATION_SECONDS);
 
   const [formState, setFormState] = useState<ILoginPayload>({
-    email: ADMIN_ACCOUNT.email,
-    password: ADMIN_ACCOUNT.password,
+    email: '',
+    password: '',
     rememberMe: true,
   });
 
@@ -75,6 +75,11 @@ export const LoginForm: React.FC = () => {
     const emailErr = validateField('email', formState.email);
     const passwordErr = validateField('password', formState.password);
     setFieldErrors({ email: emailErr, password: passwordErr });
+
+    if (!formState.email.trim() || !formState.password) {
+      setAuthError('Vui lòng nhập đủ thông tin.');
+      return;
+    }
 
     if (emailErr || passwordErr) {
       setAuthError('Vui lòng nhập đúng email/mật khẩu.');
@@ -116,10 +121,6 @@ export const LoginForm: React.FC = () => {
 
 
 
-  const isEmailValid =
-    formState.email.trim().length > 0 && !validateField('email', formState.email);
-  const isPasswordValid =
-    formState.password.length >= 8 && !validateField('password', formState.password);
 
   return (
     <motion.div
@@ -194,7 +195,6 @@ export const LoginForm: React.FC = () => {
           value={formState.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
           error={fieldErrors.email}
-          isValid={isEmailValid}
           disabled={isLockedOut || isLoading}
           leftIcon={<Mail size={17} />}
           placeholder="admin@nexuscrm.vn"
@@ -208,7 +208,6 @@ export const LoginForm: React.FC = () => {
           value={formState.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
           error={fieldErrors.password}
-          isValid={isPasswordValid}
           disabled={isLockedOut || isLoading}
           leftIcon={<Lock size={17} />}
           placeholder="••••••••••••"
@@ -220,7 +219,7 @@ export const LoginForm: React.FC = () => {
               aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               disabled={isLockedOut}
             >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
             </button>
           }
         />

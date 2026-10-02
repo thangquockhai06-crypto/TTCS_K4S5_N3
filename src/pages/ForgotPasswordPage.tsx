@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
 import { ResetPasswordForm } from '../components/auth/ResetPasswordForm';
 import { Button, Input } from '../components/common';
@@ -10,7 +10,11 @@ import formStyles from '../components/auth/LoginForm.module.css';
 
 export const ForgotPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const initialMode = searchParams.get('token') ? 'reset' : 'request';
+  const location = useLocation();
+  const initialMode =
+    location.pathname === '/reset-password' || searchParams.get('token')
+      ? 'reset'
+      : 'request';
 
   const [mode, setMode] = useState<'request' | 'reset'>(initialMode);
   const [email, setEmail] = useState('');
@@ -31,8 +35,6 @@ export const ForgotPasswordPage: React.FC = () => {
     setEmailError(null);
     return true;
   };
-
-  const isEmailValid = email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleRequestSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -122,11 +124,11 @@ export const ForgotPasswordPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (emailError) validateEmail(e.target.value);
+                  const val = e.target.value;
+                  setEmail(val);
+                  validateEmail(val);
                 }}
                 error={emailError ?? undefined}
-                isValid={isEmailValid}
                 leftIcon={<Mail size={16} />}
                 placeholder="admin@nexuscrm.vn"
                 disabled={isSubmitting}

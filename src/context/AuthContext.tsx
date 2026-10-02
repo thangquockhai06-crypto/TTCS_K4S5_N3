@@ -9,7 +9,6 @@ import {
   IUser,
 } from '../interfaces';
 import {
-  ADMIN_ACCOUNT,
   AUTH_STORAGE_KEYS,
   authenticateWithMock,
   authenticateWithSocialMock,
@@ -37,42 +36,37 @@ interface ITokenRefreshedEventDetail {
 
 export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(() => {
+    const token = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    if (token === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
+      window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+      window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+      window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+      return null;
+    }
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    if (!raw) return ADMIN_ACCOUNT.user;
+    if (!raw || !token) return null;
     try {
-      const parsed = JSON.parse(raw) as IUser;
-      if (parsed.id === 'usr-admin-01' && parsed.email !== ADMIN_ACCOUNT.user.email) {
-        window.localStorage.setItem(
-          AUTH_STORAGE_KEYS.USER,
-          JSON.stringify(ADMIN_ACCOUNT.user)
-        );
-        return ADMIN_ACCOUNT.user;
-      }
-      return parsed;
+      return JSON.parse(raw) as IUser;
     } catch {
-      return ADMIN_ACCOUNT.user;
+      return null;
     }
   });
 
   const [accessToken, setAccessToken] = useState<string | null>(() => {
     const stored = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-    if (stored) return stored;
-    const initialToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token';
-    window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, initialToken);
-    window.localStorage.setItem(
-      AUTH_STORAGE_KEYS.REFRESH_TOKEN,
-      'nexus_admin_refresh_token_2026'
-    );
-    window.localStorage.setItem(
-      AUTH_STORAGE_KEYS.USER,
-      JSON.stringify(ADMIN_ACCOUNT.user)
-    );
-    return initialToken;
+    if (stored === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
+      return null;
+    }
+    return stored;
   });
 
-  const [refreshToken, setRefreshToken] = useState<string | null>(() =>
-    window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN)
-  );
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
+    const stored = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    if (stored === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
+      return null;
+    }
+    return window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+  });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastTokenRefresh, setLastTokenRefresh] = useState<string | null>(
@@ -110,7 +104,9 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
       let response: IAuthResponse;
       if (USE_REAL_BACKEND) {
         try {
-          const { data } = await axiosInstance.post<IAuthResponse>('/auth/login', payload);
+          const { data } = await axiosInstance.post<IAuthResponse>('/auth/login', payload, {
+            timeout: 1500,
+          });
           response = data;
         } catch (error: any) {
           // Nếu Backend lỗi (chưa cấu hình MySQL / 500 / Network Error), tự động fallback sang Mock Auth cho Admin
@@ -152,7 +148,9 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
       try {
         let response: IAuthResponse;
         if (USE_REAL_BACKEND) {
-          const { data } = await axiosInstance.post<IAuthResponse>('/auth/register', payload);
+          const { data } = await axiosInstance.post<IAuthResponse>('/auth/register', payload, {
+            timeout: 1500,
+          });
           response = data;
         } else {
           response = await registerWithMock(payload);
