@@ -6,19 +6,15 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  KeyRound,
   Lock,
   Mail,
   ShieldAlert,
-  Sparkles,
-  UserPlus,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCountdown } from '../../hooks/useCountdown';
 import { ILoginPayload } from '../../interfaces';
 import { ADMIN_ACCOUNT, AUTH_STORAGE_KEYS } from '../../mock/auth.mock';
 import { Button, Input } from '../common';
-import { SocialPhoneAuthSection } from './SocialPhoneAuthSection';
 import styles from './LoginForm.module.css';
 
 const MAX_ATTEMPTS = 5;
@@ -122,15 +118,7 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleFillAdmin = (): void => {
-    setFormState({
-      email: ADMIN_ACCOUNT.email,
-      password: ADMIN_ACCOUNT.password,
-      rememberMe: true,
-    });
-    setFieldErrors({});
-    setAuthError(null);
-  };
+
 
 
 
@@ -147,13 +135,9 @@ export const LoginForm: React.FC = () => {
       transition={{ duration: 0.32 }}
     >
       <div className={styles.loginCard__header}>
-        <div className={styles.loginCard__badge}>
-          <Sparkles size={13} />
-          <span>XÁC THỰC DOANH NGHIỆP & BẢO VỆ JWT</span>
-        </div>
-        <h1 className={styles.loginCard__title}>Đăng nhập hệ thống</h1>
+        <h1 className={styles.loginCard__title}>Đăng nhập</h1>
         <p className={styles.loginCard__subtitle}>
-          Nhập thông tin tài khoản Quản trị viên hoặc đăng ký tài khoản mới để truy cập NexusCRM.
+          Nhập thông tin tài khoản để truy cập hệ thống NexusCRM.
         </p>
       </div>
 
@@ -288,38 +272,11 @@ export const LoginForm: React.FC = () => {
         </Button>
       </form>
 
-      <SocialPhoneAuthSection mode="login" disabled={isLockedOut} />
-
-      {/* Tài khoản Admin duy nhất */}
-      <div className={styles.demoCredentials}>
-        <div className={styles.demoCredentials__header}>
-          <KeyRound size={13} />
-          <span>TÀI KHOẢN QUẢN TRỊ VIÊN MẶC ĐỊNH (NHẤN ĐỂ ĐIỀN)</span>
-        </div>
-        <button
-          type="button"
-          onClick={handleFillAdmin}
-          disabled={isLockedOut}
-          className={styles.demoCredentials__singleBtn}
-        >
-          <div className={styles.demoCredentials__left}>
-            <span className={styles.demoCredentials__name}>
-              {ADMIN_ACCOUNT.user.fullName}
-            </span>
-            <code className={styles.demoCredentials__email}>
-              {ADMIN_ACCOUNT.email} · Mật khẩu: {ADMIN_ACCOUNT.password}
-            </code>
-          </div>
-          <span className={styles.demoCredentials__role}>Super Admin</span>
-        </button>
-      </div>
-
-      {/* Liên kết chuyển sang trang Đăng ký */}
+      {/* Liên kết chuyển sang trang Đăng ký (Zalo style) */}
       <div className={styles.switchAuthRow}>
-        <span>Chưa có tài khoản doanh nghiệp?</span>
+        <span>Bạn chưa có tài khoản?</span>
         <Link to="/register" className={styles.switchAuthLink}>
-          <UserPlus size={14} />
-          Đăng ký tài khoản mới
+          Đăng ký ngay!
         </Link>
       </div>
     </motion.div>

@@ -1,11 +1,11 @@
 .loginCard {
   width: 100%;
-  max-width: 450px;
-  background-color: var(--color-bg-surface);
+  max-width: 440px;
+  background-color: #ffffff;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: 32px 30px;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  padding: 32px 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -14,31 +14,20 @@
 .loginCard__header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.loginCard__badge {
-  display: inline-flex;
   align-items: center;
+  text-align: center;
   gap: 6px;
-  align-self: flex-start;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  padding-bottom: 4px;
 }
 
 .loginCard__title {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.45rem;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .loginCard__subtitle {
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
 }
 
@@ -210,92 +199,30 @@
   text-underline-offset: 3px;
 }
 
-.demoCredentials {
-  padding-top: 14px;
-  border-top: 1px solid var(--color-border-subtle);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.demoCredentials__header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-}
-
-.demoCredentials__singleBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-bg-subtle);
-  text-align: left;
-  transition: all 0.16s ease;
-}
-
-.demoCredentials__singleBtn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-soft);
-}
-
-.demoCredentials__left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.demoCredentials__name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.demoCredentials__email {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--color-text-secondary);
-}
-
-.demoCredentials__role {
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .switchAuthRow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding-top: 12px;
+  gap: 6px;
+  padding-top: 16px;
   border-top: 1px solid var(--color-border-subtle);
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
 
 .switchAuthLink {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-weight: 700;
+  gap: 4px;
+  font-weight: 600;
   color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
 }
 
 .switchAuthLink:hover {
   text-decoration: underline;
+  color: var(--color-primary-hover);
 }
 
 @media (max-width: 480px) {
