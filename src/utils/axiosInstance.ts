@@ -109,7 +109,9 @@ export const axiosInstance: AxiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    const token =
+      window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ||
+      window.sessionStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers.set('Authorization', `Bearer ${token}`);
     }
@@ -142,7 +144,9 @@ axiosInstance.interceptors.response.use(
 
       try {
         const storedRefreshToken =
-          window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN) ?? '';
+          window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN) ||
+          window.sessionStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN) ||
+          '';
         let refreshed: { accessToken: string; refreshToken: string; refreshedAt: string };
 
         if (USE_REAL_BACKEND) {
@@ -154,8 +158,10 @@ axiosInstance.interceptors.response.use(
           refreshed = await refreshTokenWithMock(storedRefreshToken);
         }
 
-        window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, refreshed.accessToken);
-        window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, refreshed.refreshToken);
+        const isLocal = Boolean(window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN));
+        const targetStore = isLocal ? window.localStorage : window.sessionStorage;
+        targetStore.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, refreshed.accessToken);
+        targetStore.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, refreshed.refreshToken);
 
         window.dispatchEvent(
           new CustomEvent('nexus:token-refreshed', {
@@ -177,6 +183,11 @@ axiosInstance.interceptors.response.use(
         window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
         window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
         window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.REMEMBER_ME);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.USER);
         window.dispatchEvent(new CustomEvent('nexus:auth-expired'));
         return Promise.reject(normalizedError);
       } finally {

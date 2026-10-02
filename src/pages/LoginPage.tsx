@@ -1,9 +1,16 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { LoginForm } from '../components/auth/LoginForm';
 import logoUrl from '../assets/logo.svg';
 import styles from './LoginPage.module.css';
 
 export const LoginPage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
   return (
     <div className={styles.authContainer}>
       <header className={styles.brandHeader}>

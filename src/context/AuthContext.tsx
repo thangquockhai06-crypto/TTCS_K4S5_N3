@@ -34,43 +34,82 @@ interface ITokenRefreshedEventDetail {
   refreshedAt: string;
 }
 
-export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<IUser | null>(() => {
-    const token = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-    if (token === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
-      window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      return null;
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+const getInitialAuthState = (): {
+  user: IUser | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+} => {
+  const localToken = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+  if (localToken === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.REMEMBER_ME);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
+    return { user: null, accessToken: null, refreshToken: null };
+  }
+
+  // 1. Kiểm tra phiên duy trì 30 ngày trong localStorage
+  const isRemembered = window.localStorage.getItem(AUTH_STORAGE_KEYS.REMEMBER_ME) === 'true';
+  const expiresAtRaw = window.localStorage.getItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
+  const localUserRaw = window.localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+  const localRefreshToken = window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+
+  if (isRemembered && localToken && localUserRaw) {
+    if (expiresAtRaw) {
+      const expiresAt = Number(expiresAtRaw);
+      if (Date.now() > expiresAt) {
+        // Đã quá 30 ngày -> Hết hạn duy trì đăng nhập
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.REMEMBER_ME);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
+        return { user: null, accessToken: null, refreshToken: null };
+      }
     }
-    const raw = window.localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    if (!raw || !token) return null;
     try {
-      return JSON.parse(raw) as IUser;
+      return {
+        user: JSON.parse(localUserRaw) as IUser,
+        accessToken: localToken,
+        refreshToken: localRefreshToken,
+      };
     } catch {
-      return null;
+      return { user: null, accessToken: null, refreshToken: null };
     }
-  });
+  }
 
-  const [accessToken, setAccessToken] = useState<string | null>(() => {
-    const stored = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-    if (stored === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
-      return null;
-    }
-    return stored;
-  });
+  // 2. Kiểm tra phiên tạm thời trong sessionStorage (khi rememberMe = false)
+  const sessionToken = window.sessionStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+  const sessionUserRaw = window.sessionStorage.getItem(AUTH_STORAGE_KEYS.USER);
+  const sessionRefreshToken = window.sessionStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
 
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
-    const stored = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-    if (stored === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.nexus_admin_session_token') {
-      return null;
+  if (sessionToken && sessionUserRaw) {
+    try {
+      return {
+        user: JSON.parse(sessionUserRaw) as IUser,
+        accessToken: sessionToken,
+        refreshToken: sessionRefreshToken,
+      };
+    } catch {
+      return { user: null, accessToken: null, refreshToken: null };
     }
-    return window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
-  });
+  }
+
+  return { user: null, accessToken: null, refreshToken: null };
+};
+
+export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
+  const [initialAuth] = useState(getInitialAuthState);
+  const [user, setUser] = useState<IUser | null>(initialAuth.user);
+  const [accessToken, setAccessToken] = useState<string | null>(initialAuth.accessToken);
+  const [refreshToken, setRefreshToken] = useState<string | null>(initialAuth.refreshToken);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastTokenRefresh, setLastTokenRefresh] = useState<string | null>(
-    'Phiên đang hoạt động'
+    initialAuth.user ? 'Phiên đang hoạt động' : null
   );
 
   useEffect(() => {
@@ -126,9 +165,33 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
         response = await authenticateWithMock(payload);
       }
 
-      window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-      window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
-      window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
+      const rememberMe = payload.rememberMe !== false;
+      const expiresAt = Date.now() + THIRTY_DAYS_MS;
+
+      if (rememberMe) {
+        // Duy trì đăng nhập 30 ngày trong localStorage
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.REMEMBER_ME, 'true');
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT, String(expiresAt));
+
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+      } else {
+        // Phiên tạm thời: chỉ lưu trong sessionStorage (khi tắt tab/trình duyệt sẽ mất)
+        window.sessionStorage.setItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+        window.sessionStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+        window.sessionStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(response.user));
+
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.REMEMBER_ME);
+        window.localStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
+      }
+
       window.localStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
       window.localStorage.removeItem(AUTH_STORAGE_KEYS.LOCKOUT_UNTIL);
 
@@ -239,7 +302,9 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
    */
   const logout = useCallback((): void => {
     if (USE_REAL_BACKEND) {
-      const storedRefreshToken = window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+      const storedRefreshToken =
+        window.localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN) ||
+        window.sessionStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
       axiosInstance
         .post('/auth/logout', { refreshToken: storedRefreshToken })
         .catch(() => {});
@@ -248,6 +313,8 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
     window.localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.REMEMBER_ME);
+    window.localStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_EXPIRES_AT);
     window.sessionStorage.clear();
 
     setAccessToken(null);
@@ -259,7 +326,10 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
   const triggerMockTokenRefresh = useCallback(async (): Promise<string> => {
     triggerSimulated401OnNextCall();
     await axiosInstance.get('/auth/session-heartbeat');
-    const updatedToken = window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ?? '';
+    const updatedToken =
+      window.localStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ||
+      window.sessionStorage.getItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN) ||
+      '';
     return updatedToken;
   }, []);
 
@@ -267,7 +337,13 @@ export const AuthProvider: React.FC<IAuthProviderProps> = ({ children }) => {
     setUser((prev) => {
       if (!prev) return null;
       const updated: IUser = { ...prev, ...partial };
-      window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(updated));
+      const serialized = JSON.stringify(updated);
+      if (window.localStorage.getItem(AUTH_STORAGE_KEYS.USER)) {
+        window.localStorage.setItem(AUTH_STORAGE_KEYS.USER, serialized);
+      }
+      if (window.sessionStorage.getItem(AUTH_STORAGE_KEYS.USER)) {
+        window.sessionStorage.setItem(AUTH_STORAGE_KEYS.USER, serialized);
+      }
       return updated;
     });
   }, []);

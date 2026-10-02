@@ -16,6 +16,8 @@ export const AUTH_STORAGE_KEYS = {
   REGISTERED_USERS: 'nexus_crm_registered_users',
   LOCKOUT_UNTIL: 'nexus_crm_lockout_until_ts',
   FAILED_ATTEMPTS: 'nexus_crm_failed_login_attempts',
+  REMEMBER_ME: 'nexus_crm_remember_me',
+  SESSION_EXPIRES_AT: 'nexus_crm_session_expires_at',
 } as const;
 
 export interface IStoredAccount {
