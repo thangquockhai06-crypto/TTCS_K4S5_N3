@@ -92,7 +92,7 @@ export const ChangePasswordForm: React.FC = () => {
           onChange={(event) => updateField('newPassword', event.target.value)}
           onBlur={() => blurField('newPassword')}
           error={errors.newPassword}
-          helperText="Tối thiểu 8 ký tự, gồm ít nhất một chữ cái và một chữ số."
+          helperText="Tối thiểu 8 ký tự, gồm ít nhất một chữ cái, một chữ số và một ký tự đặc biệt."
           leftIcon={<LockKeyhole size={16} />}
           rightElement={
             <button

@@ -38,9 +38,8 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
 
   const validatePassword = (pass: string): string | undefined => {
     if (!pass) return 'Vui lòng nhập mật khẩu mới.';
-    if (pass.length < 8) return 'Mật khẩu phải có tối thiểu 8 ký tự.';
-    if (!/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass)) {
-      return 'Mật khẩu phải bao gồm cả chữ cái và chữ số.';
+    if (pass.length < 8 || !/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass) || !/[^A-Za-z0-9]/.test(pass)) {
+      return 'Mật khẩu phải tối thiểu 8 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt.';
     }
     return undefined;
   };
@@ -178,8 +177,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
               {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
             </button>
           }
-          placeholder="Tối thiểu 8 ký tự gồm chữ và số"
-          helperText="Tối thiểu 8 ký tự, gồm ít nhất một chữ cái và một chữ số"
+          placeholder="Tối thiểu 8 ký tự"
           disabled={isSubmitting}
         />
 

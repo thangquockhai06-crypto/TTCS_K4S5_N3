@@ -57,7 +57,9 @@ export const LoginForm: React.FC = () => {
     }
 
     if (!value) return 'Vui lòng nhập mật khẩu.';
-    if (value.length < 8) return 'Mật khẩu phải có tối thiểu 8 ký tự.';
+    if (value.length < 8 || !/[A-Za-z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+      return 'Mật khẩu phải tối thiểu 8 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt.';
+    }
     return undefined;
   };
 

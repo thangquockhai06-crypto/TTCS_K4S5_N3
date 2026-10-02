@@ -62,7 +62,10 @@ export const RegisterForm: React.FC = () => {
         if (trimmed.length < 2) return 'Vui lòng nhập tên công ty hoặc tổ chức.';
         return undefined;
       case 'password':
-        if (value.length < 8) return 'Mật khẩu phải có từ 8 ký tự trở lên.';
+        if (!value) return 'Vui lòng nhập mật khẩu.';
+        if (value.length < 8 || !/[A-Za-z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+          return 'Mật khẩu phải tối thiểu 8 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt.';
+        }
         return undefined;
       case 'confirmPassword':
         if (!value) return 'Vui lòng xác nhận lại mật khẩu.';
@@ -217,6 +220,7 @@ export const RegisterForm: React.FC = () => {
         <div className={styles.grid2}>
           <Input
             label="Mật khẩu *"
+            name="password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={(e) => handleFieldChange('password', e.target.value)}
@@ -237,6 +241,7 @@ export const RegisterForm: React.FC = () => {
 
           <Input
             label="Xác nhận mật khẩu *"
+            name="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             value={formData.confirmPassword}
             onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
