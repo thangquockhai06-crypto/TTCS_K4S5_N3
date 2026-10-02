@@ -132,7 +132,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ initialTok
   }
 
   return (
-    <div className={styles.loginCard}>
+    <div className={styles.loginCard} style={{ width: '100%', maxWidth: '460px', boxSizing: 'border-box' }}>
       <div className={styles.loginCard__header}>
         <h1 className={styles.loginCard__title}>Đặt lại mật khẩu mới</h1>
         <p className={styles.loginCard__subtitle}>

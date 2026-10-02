@@ -45,14 +45,10 @@ export const VerifyTokenForm: React.FC<VerifyTokenFormProps> = ({
       return;
     }
 
-    const expectedToken = window.sessionStorage.getItem('nexus_crm_reset_token') || '886699';
+    const expectedToken = window.sessionStorage.getItem('nexus_crm_reset_token') || '123456';
     const isValidToken =
       trimmed === expectedToken ||
-      trimmed === '886699' ||
-      trimmed === '123456' ||
-      trimmed.toUpperCase() === 'NEXUS-2026' ||
-      trimmed.startsWith('TOKEN-') ||
-      trimmed.length >= 6;
+      trimmed === '123456';
 
     if (!isValidToken) {
       setFieldError('Vui lòng nhập đúng mã xác thực.');
@@ -68,7 +64,7 @@ export const VerifyTokenForm: React.FC<VerifyTokenFormProps> = ({
   };
 
   return (
-    <div className={styles.loginCard}>
+    <div className={styles.loginCard} style={{ width: '100%', maxWidth: '460px', boxSizing: 'border-box' }}>
       <div className={styles.loginCard__header}>
         <div
           style={{
@@ -108,7 +104,7 @@ export const VerifyTokenForm: React.FC<VerifyTokenFormProps> = ({
           onChange={(e) => handleTokenChange(e.target.value)}
           error={fieldError}
           leftIcon={<KeyRound size={16} />}
-          placeholder="Nhập mã token từ email... (Mã mẫu: 886699)"
+          placeholder="Nhập mã token từ email..."
           disabled={isSubmitting}
           autoFocus
         />

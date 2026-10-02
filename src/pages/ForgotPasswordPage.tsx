@@ -35,7 +35,7 @@ export const ForgotPasswordPage: React.FC = () => {
     if (showToast) {
       const timer = setTimeout(() => {
         setShowToast(false);
-      }, 6000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [showToast]);
@@ -60,7 +60,7 @@ export const ForgotPasswordPage: React.FC = () => {
     if (!validateEmail(email)) return;
 
     setIsSubmitting(true);
-    const demoToken = '886699';
+    const demoToken = '123456';
     window.sessionStorage.setItem('nexus_crm_reset_email', email.trim());
     window.sessionStorage.setItem('nexus_crm_reset_token', demoToken);
 
@@ -74,7 +74,7 @@ export const ForgotPasswordPage: React.FC = () => {
       // Giữ luồng hoạt động mượt mà cho frontend mock
     } finally {
       setIsSubmitting(false);
-      // Hiển thị thông báo ở góc dưới bên phải
+      // Hiển thị thông báo ở góc dưới bên phải (không kèm mã mẫu)
       setShowToast(true);
       // Đổi hướng đến trang nhập mã xác thực
       setMode('verify');
@@ -90,9 +90,13 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   const handleResendToken = (): void => {
-    const demoToken = '886699';
+    const demoToken = '123456';
     window.sessionStorage.setItem('nexus_crm_reset_token', demoToken);
-    setShowToast(true);
+    // Kích hoạt lại thông báo gửi mã ở góc dưới bên phải
+    setShowToast(false);
+    setTimeout(() => {
+      setShowToast(true);
+    }, 50);
   };
 
   const subtitleText =
@@ -114,7 +118,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
       <main className={styles.formWrapper}>
         {mode === 'reset' ? (
-          <div>
+          <div style={{ width: '100%', maxWidth: '460px', display: 'flex', flexDirection: 'column' }}>
             <ResetPasswordForm initialToken={verifiedToken} />
             <div style={{ textAlign: 'center', marginTop: '16px' }}>
               <button
@@ -144,7 +148,7 @@ export const ForgotPasswordPage: React.FC = () => {
             onResend={handleResendToken}
           />
         ) : (
-          <div className={formStyles.loginCard}>
+          <div className={formStyles.loginCard} style={{ width: '100%', maxWidth: '460px', boxSizing: 'border-box' }}>
             <div className={formStyles.loginCard__header}>
               <div
                 style={{
@@ -222,7 +226,7 @@ export const ForgotPasswordPage: React.FC = () => {
         )}
       </main>
 
-      {/* Thông báo góc dưới bên phải "Đã gửi mã xác thực qua email" */}
+      {/* Thông báo góc dưới bên phải: "Đã gửi mã xác thực qua email" (đã bỏ dòng mã mẫu) */}
       {showToast && (
         <div
           style={{
@@ -284,10 +288,7 @@ export const ForgotPasswordPage: React.FC = () => {
               </button>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: '#64748B', lineHeight: 1.45 }}>
-              Mã xác thực đã được gửi đến email {email ? <strong>{email}</strong> : 'của bạn'}.
-              <span style={{ display: 'block', marginTop: '3px', fontWeight: 600, color: '#2563EB' }}>
-                Mã xác thực mẫu: 886699
-              </span>
+              Mã xác thực đã được gửi đến email {email ? <strong>{email}</strong> : 'của bạn'}. Vui lòng kiểm tra hộp thư đến.
             </p>
           </div>
         </div>
