@@ -6,6 +6,13 @@ from app.routers.opportunities import router as opportunities_router
 from app.routers.activities import router as activities_router
 from app.routers.quotations import router as quotations_router
 from app.routers.dashboard import router as dashboard_router
+from app.routers.audit_logs import router as audit_logs_router
+from app.routers.products import router as products_router
+from app.routers.categories import router as categories_router
+from app.routers.org_tree import router as org_tree_router
+from app.routers.custom_fields import router as custom_fields_router
+from app.routers.pipelines import router as pipelines_router
+from app.routers.win_loss import router as win_loss_router
 
 __all__ = [
     "auth_router",
@@ -16,4 +23,11 @@ __all__ = [
     "activities_router",
     "quotations_router",
     "dashboard_router",
+    "audit_logs_router",
+    "products_router",
+    "categories_router",
+    "org_tree_router",
+    "custom_fields_router",
+    "pipelines_router",
+    "win_loss_router",
 ]

@@ -1,22 +1,26 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
-  Activity,
-  BarChart3,
-  Briefcase,
+  Building2,
+  FileText,
+  FolderTree,
+  GitCommit,
   LayoutDashboard,
-  LogOut,
+  Package,
   PanelLeftClose,
-  Plus,
-  Settings,
   ShieldCheck,
-  Users,
+  Sliders,
+  Target,
+  UserCheck,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Avatar } from '../common';
 import logoUrl from '../../assets/logo.svg';
 import styles from './Sidebar.module.css';
+
+import { useAuthorization } from '../../hooks/useAuthorization';
+import { IMenuItem } from '../../interfaces/menu.interface';
 
 export interface ISidebarProps {
   isCollapsed: boolean;
@@ -25,45 +29,69 @@ export interface ISidebarProps {
   onCloseMobile: () => void;
 }
 
-interface INavItem {
-  label: string;
-  path: string;
-  icon: React.ReactNode;
-  badge?: string;
-}
-
-const NAV_ITEMS: ReadonlyArray<INavItem> = [
+const ALL_MENU_ITEMS: ReadonlyArray<IMenuItem> = [
   {
+    id: 'dashboard',
     label: 'Tổng quan',
     path: '/dashboard',
     icon: <LayoutDashboard size={19} />,
+    requiredPermission: 'view_dashboard',
   },
   {
-    label: 'Khách hàng',
-    path: '/customers',
-    icon: <Users size={19} />,
-    badge: '50',
+    id: 'users',
+    label: 'Quản lý Người dùng',
+    path: '/users',
+    icon: <UserCheck size={19} />,
+    requiredPermission: 'manage_sales_staff',
   },
   {
-    label: 'Phễu Cơ hội (Deals)',
-    path: '/deals',
-    icon: <Briefcase size={19} />,
-    badge: '12',
+    id: 'organization',
+    label: 'Cơ cấu Tổ chức',
+    path: '/organization',
+    icon: <Building2 size={19} />,
+    requiredPermission: 'view_dashboard',
   },
   {
-    label: 'Nhật ký Hoạt động',
-    path: '/activities',
-    icon: <Activity size={19} />,
+    id: 'categories',
+    label: 'Danh mục Dùng chung',
+    path: '/categories',
+    icon: <FolderTree size={19} />,
+    requiredPermission: 'view_dashboard',
   },
   {
-    label: 'Báo cáo Doanh thu',
-    path: '/reports',
-    icon: <BarChart3 size={19} />,
+    id: 'products',
+    label: 'Sản phẩm & Giá',
+    path: '/products',
+    icon: <Package size={19} />,
+    requiredPermission: 'manage_products',
   },
   {
-    label: 'Cài đặt Hệ thống',
-    path: '/settings',
-    icon: <Settings size={19} />,
+    id: 'pipeline',
+    label: 'Cấu hình Pipeline',
+    path: '/pipeline',
+    icon: <GitCommit size={19} />,
+    requiredPermission: 'system_settings',
+  },
+  {
+    id: 'win-loss',
+    label: 'Lý do Thắng/Thua',
+    path: '/win-loss',
+    icon: <Target size={19} />,
+    requiredPermission: 'system_settings',
+  },
+  {
+    id: 'custom-fields',
+    label: 'Trường Tùy chỉnh',
+    path: '/custom-fields',
+    icon: <Sliders size={19} />,
+    requiredPermission: 'system_settings',
+  },
+  {
+    id: 'audit-logs',
+    label: 'Nhật ký Kiểm toán',
+    path: '/audit-logs',
+    icon: <FileText size={19} />,
+    requiredPermission: 'view_audit_logs',
   },
 ];
 
@@ -73,14 +101,15 @@ export const Sidebar: React.FC<ISidebarProps> = ({
   onToggleCollapse,
   onCloseMobile,
 }) => {
-  const { user, logout, lastTokenRefresh } = useAuth();
-  const navigate = useNavigate();
+  const { user, lastTokenRefresh } = useAuth();
+  const { hasPermission } = useAuthorization();
 
-  const handleLogout = (): void => {
-    logout();
-    onCloseMobile();
-    navigate('/login');
-  };
+  const menuItems = React.useMemo(() => {
+    return ALL_MENU_ITEMS.filter((item) => {
+      if (!item.requiredPermission) return true;
+      return hasPermission(item.requiredPermission);
+    });
+  }, [hasPermission]);
 
   const sidebarClasses = [
     styles.sidebar,
@@ -109,7 +138,7 @@ export const Sidebar: React.FC<ISidebarProps> = ({
             <img src={logoUrl} alt="NexusCRM Logo" className={styles.sidebar__logo} />
             <div className={styles.sidebar__brandText}>
               <span className={styles.sidebar__brandTitle}>NexusCRM</span>
-              <span className={styles.sidebar__brandTag}>QUẢN TRỊ DOANH THU · 2026</span>
+              <span className={styles.sidebar__brandTag}>DOANH NGHIỆP · 2026</span>
             </div>
           </div>
 
@@ -117,8 +146,8 @@ export const Sidebar: React.FC<ISidebarProps> = ({
             type="button"
             onClick={onToggleCollapse}
             className={styles.sidebar__collapseBtn}
-            aria-label="Thu gọn hoàn toàn thanh điều hướng"
-            title="Đóng thanh điều hướng (Thụt vào hoàn toàn)"
+            aria-label="Thu gọn thanh điều hướng"
+            title="Thu gọn thanh điều hướng"
           >
             <PanelLeftClose size={17} />
           </button>
@@ -133,25 +162,10 @@ export const Sidebar: React.FC<ISidebarProps> = ({
           </button>
         </div>
 
-        <div className={styles.sidebar__ctaWrap}>
-          <button
-            type="button"
-            className={styles.sidebar__quickAddBtn}
-            onClick={() => {
-              onCloseMobile();
-              navigate('/customers/new');
-            }}
-            aria-label="Thêm khách hàng mới"
-          >
-            <Plus size={17} />
-            <span>Thêm khách hàng mới</span>
-          </button>
-        </div>
-
         <nav className={styles.sidebar__nav} aria-label="Menu chính">
-          <p className={styles.sidebar__sectionLabel}>PHÂN HỆ QUẢN TRỊ</p>
+          <p className={styles.sidebar__sectionLabel}>PHÂN HỆ HỆ THỐNG</p>
           <ul className={styles.sidebar__list}>
-            {NAV_ITEMS.map((item) => (
+            {menuItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
@@ -177,7 +191,7 @@ export const Sidebar: React.FC<ISidebarProps> = ({
           <div className={styles.sidebar__tokenStatus} title="S1-02 Bảo vệ phiên JWT">
             <ShieldCheck size={14} className={styles.sidebar__tokenIcon} />
             <div className={styles.sidebar__tokenMeta}>
-              <span className={styles.sidebar__tokenTitle}>Phiên JWT Bảo mật</span>
+              <span className={styles.sidebar__tokenTitle}>Phiên JWT Hoạt động</span>
               <span className={styles.sidebar__tokenSub}>
                 {lastTokenRefresh ?? 'Đã xác thực Bearer'}
               </span>
@@ -187,27 +201,18 @@ export const Sidebar: React.FC<ISidebarProps> = ({
           <div className={styles.sidebar__userRow}>
             <Avatar
               src={user?.avatarUrl}
-              name={user?.fullName ?? 'Quản Trị Viên Hệ Thống'}
+              name={user?.fullName ?? 'Người dùng'}
               size="sm"
               status="online"
             />
             <div className={styles.sidebar__userInfo}>
-              <p className={styles.sidebar__userName}>
-                {user?.fullName ?? 'Quản Trị Viên Hệ Thống'}
+              <p className={styles.sidebar__userName} title={user?.fullName ?? 'Người dùng'}>
+                {user?.fullName ?? 'Người dùng'}
               </p>
-              <p className={styles.sidebar__userRole}>
-                {user?.role ?? 'Super Admin'}
+              <p className={styles.sidebar__userRole} title={`${user?.role ?? 'Người dùng'} · ${user?.department || 'Hệ thống'}`}>
+                {user?.role ?? 'Người dùng'} · {user?.department || 'Hệ thống'}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={styles.sidebar__logoutBtn}
-              aria-label="Đăng xuất và xóa bộ nhớ phiên"
-              title="Đăng xuất (Xóa Token Storage)"
-            >
-              <LogOut size={16} />
-            </button>
           </div>
         </div>
       </aside>

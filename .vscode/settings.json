@@ -1,6 +1,0 @@
-{
-  "terminal.integrated.defaultProfile.windows": "Command Prompt",
-  "npm.enableRunFromFolder": true,
-  "npm.scriptExplorerAction": "click",
-  "task.allowAutomaticTasks": "on"
-}

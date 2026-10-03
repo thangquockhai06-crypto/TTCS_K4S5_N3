@@ -61,3 +61,12 @@ ENV/
 env/
 server/.env
 .pytest_cache/
+
+# IDE
+.vscode/
+
+# SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
+server/*.db

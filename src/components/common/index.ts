@@ -10,3 +10,5 @@ export * from './LoadingSkeleton';
 export * from './Modal';
 export * from './SearchBar';
 export * from './StatCard';
+export * from './ErrorBoundary';
+export * from './PermissionGuard';

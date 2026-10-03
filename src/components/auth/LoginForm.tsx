@@ -6,18 +6,14 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  KeyRound,
   Lock,
   Mail,
-  RotateCcw,
   ShieldAlert,
-  Sparkles,
-  UserPlus,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCountdown } from '../../hooks/useCountdown';
 import { ILoginPayload } from '../../interfaces';
-import { ADMIN_ACCOUNT, AUTH_STORAGE_KEYS } from '../../mock/auth.mock';
+import { AUTH_STORAGE_KEYS } from '../../mock/auth.mock';
 import { Button, Input } from '../common';
 import styles from './LoginForm.module.css';
 
@@ -38,9 +34,9 @@ export const LoginForm: React.FC = () => {
   } = useCountdown(LOCKOUT_DURATION_SECONDS);
 
   const [formState, setFormState] = useState<ILoginPayload>({
-    email: ADMIN_ACCOUNT.email,
-    password: ADMIN_ACCOUNT.password,
-    rememberMe: true,
+    email: '',
+    password: '',
+    rememberMe: false,
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -88,6 +84,7 @@ export const LoginForm: React.FC = () => {
       await login(formState);
       setFailedAttempts(0);
       resetCountdown();
+      window.localStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
       navigate('/dashboard');
     } catch (err: unknown) {
       let serverMsg: string | undefined;
@@ -122,31 +119,6 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleFillAdmin = (): void => {
-    setFormState({
-      email: ADMIN_ACCOUNT.email,
-      password: ADMIN_ACCOUNT.password,
-      rememberMe: true,
-    });
-    setFieldErrors({});
-    setAuthError(null);
-  };
-
-  const handleSimulateLockout = (): void => {
-    setFailedAttempts(MAX_ATTEMPTS);
-    window.localStorage.setItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS, String(MAX_ATTEMPTS));
-    startCountdown(LOCKOUT_DURATION_SECONDS);
-    setAuthError(
-      '[S1-01 Demo] Đã kích hoạt giả lập nhập sai 5 lần — Khóa tài khoản 15 phút (900 giây).'
-    );
-  };
-
-  const handleUnlockDemo = (): void => {
-    setFailedAttempts(0);
-    resetCountdown();
-    setAuthError(null);
-  };
-
   const isEmailValid =
     formState.email.trim().length > 0 && !validateField('email', formState.email);
   const isPasswordValid =
@@ -154,19 +126,15 @@ export const LoginForm: React.FC = () => {
 
   return (
     <motion.div
-      className={styles.loginCard}
+      className={styles.loginFormContainer}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32 }}
     >
-      <div className={styles.loginCard__header}>
-        <div className={styles.loginCard__badge}>
-          <Sparkles size={13} />
-          <span>XÁC THỰC DOANH NGHIỆP & BẢO VỆ JWT</span>
-        </div>
-        <h1 className={styles.loginCard__title}>Đăng nhập hệ thống</h1>
-        <p className={styles.loginCard__subtitle}>
-          Nhập thông tin tài khoản Quản trị viên hoặc đăng ký tài khoản mới để truy cập NexusCRM.
+      <div className={styles.loginForm__header}>
+        <h1 className={styles.loginForm__title}>Đăng nhập hệ thống</h1>
+        <p className={styles.loginForm__subtitle}>
+          Nhập thông tin tài khoản doanh nghiệp để truy cập NexusCRM.
         </p>
       </div>
 
@@ -187,8 +155,7 @@ export const LoginForm: React.FC = () => {
                 Tài khoản tạm khóa bảo mật (Chính sách 15 phút)
               </h2>
               <p className={styles.lockoutBanner__desc}>
-                Phát hiện 5 lần đăng nhập thất bại liên tiếp. Vui lòng chờ đồng hồ đếm ngược kết
-                thúc (`useCountdown(15 * 60)`).
+                Phát hiện 5 lần đăng nhập thất bại liên tiếp. Vui lòng chờ đồng hồ đếm ngược kết thúc để bảo đảm an toàn.
               </p>
             </div>
           </div>
@@ -201,15 +168,6 @@ export const LoginForm: React.FC = () => {
               </strong>
               <span className={styles.lockoutBanner__seconds}>({secondsLeft}s)</span>
             </div>
-
-            <button
-              type="button"
-              onClick={handleUnlockDemo}
-              className={styles.lockoutBanner__resetBtn}
-            >
-              <RotateCcw size={13} />
-              Mở khóa ngay (Reset Demo)
-            </button>
           </div>
 
           <div className={styles.lockoutBanner__progressTrack}>
@@ -240,7 +198,7 @@ export const LoginForm: React.FC = () => {
           isValid={isEmailValid}
           disabled={isLockedOut || isLoading}
           leftIcon={<Mail size={17} />}
-          placeholder="admin@nexuscrm.vn"
+          placeholder="name@company.com"
         />
 
         <Input
@@ -278,17 +236,14 @@ export const LoginForm: React.FC = () => {
                 setFormState((prev) => ({ ...prev, rememberMe: e.target.checked }))
               }
             />
-            <span>Duy trì phiên đăng nhập 30 ngày</span>
+            <span>Duy trì đăng nhập</span>
           </label>
-
-          <button
-            type="button"
-            onClick={handleSimulateLockout}
-            className={styles.loginForm__simulateLockBtn}
-            title="Kiểm thử S1-01: Kích hoạt khóa tài khoản 15 phút"
+          <Link
+            to="/forgot-password"
+            className={styles.forgotPasswordLink}
           >
-            Giả lập khóa 15p (S1-01)
-          </button>
+            Quên mật khẩu?
+          </Link>
         </div>
 
         <Button
@@ -303,39 +258,6 @@ export const LoginForm: React.FC = () => {
           {isLockedOut ? `Đang khóa (${formattedTime})` : 'Đăng nhập vào Hệ thống'}
         </Button>
       </form>
-
-      {/* Tài khoản Admin duy nhất */}
-      <div className={styles.demoCredentials}>
-        <div className={styles.demoCredentials__header}>
-          <KeyRound size={13} />
-          <span>TÀI KHOẢN QUẢN TRỊ VIÊN MẶC ĐỊNH (NHẤN ĐỂ ĐIỀN)</span>
-        </div>
-        <button
-          type="button"
-          onClick={handleFillAdmin}
-          disabled={isLockedOut}
-          className={styles.demoCredentials__singleBtn}
-        >
-          <div className={styles.demoCredentials__left}>
-            <span className={styles.demoCredentials__name}>
-              {ADMIN_ACCOUNT.user.fullName}
-            </span>
-            <code className={styles.demoCredentials__email}>
-              {ADMIN_ACCOUNT.email} · Mật khẩu: {ADMIN_ACCOUNT.password}
-            </code>
-          </div>
-          <span className={styles.demoCredentials__role}>Super Admin</span>
-        </button>
-      </div>
-
-      {/* Liên kết chuyển sang trang Đăng ký */}
-      <div className={styles.switchAuthRow}>
-        <span>Chưa có tài khoản doanh nghiệp?</span>
-        <Link to="/register" className={styles.switchAuthLink}>
-          <UserPlus size={14} />
-          Đăng ký tài khoản mới
-        </Link>
-      </div>
     </motion.div>
   );
 };

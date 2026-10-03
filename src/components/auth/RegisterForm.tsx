@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import {
   AlertTriangle,
   ArrowRight,
-  Briefcase,
   Building2,
   Eye,
   EyeOff,
@@ -17,13 +16,13 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { IRegisterPayload } from '../../interfaces';
 import { Button, Input } from '../common';
+import { SocialPhoneAuthSection } from './SocialPhoneAuthSection';
 import styles from './RegisterForm.module.css';
 
 interface IRegisterFieldErrors {
   fullName?: string;
   email?: string;
   companyName?: string;
-  roleTitle?: string;
   password?: string;
   confirmPassword?: string;
 }
@@ -36,7 +35,7 @@ export const RegisterForm: React.FC = () => {
     fullName: '',
     email: '',
     companyName: '',
-    roleTitle: 'Quản trị viên Doanh nghiệp',
+    roleTitle: 'Chuyên viên Kinh doanh',
     password: '',
     confirmPassword: '',
   });
@@ -64,15 +63,14 @@ export const RegisterForm: React.FC = () => {
       case 'companyName':
         if (trimmed.length < 2) return 'Vui lòng nhập tên công ty hoặc tổ chức.';
         return undefined;
-      case 'roleTitle':
-        if (trimmed.length < 2) return 'Vui lòng nhập chức vụ.';
-        return undefined;
       case 'password':
         if (value.length < 8) return 'Mật khẩu phải có từ 8 ký tự trở lên.';
         return undefined;
       case 'confirmPassword':
         if (!value) return 'Vui lòng xác nhận lại mật khẩu.';
         if (value !== currentPassword) return 'Mật khẩu xác nhận không khớp.';
+        return undefined;
+      default:
         return undefined;
     }
   };
@@ -119,7 +117,6 @@ export const RegisterForm: React.FC = () => {
       fullName: validateSingle('fullName', formData.fullName),
       email: validateSingle('email', formData.email),
       companyName: validateSingle('companyName', formData.companyName),
-      roleTitle: validateSingle('roleTitle', formData.roleTitle),
       password: validateSingle('password', formData.password),
       confirmPassword: validateSingle(
         'confirmPassword',
@@ -213,7 +210,7 @@ export const RegisterForm: React.FC = () => {
           />
         </div>
 
-        <div className={styles.grid2}>
+        <div>
           <Input
             label="Tên doanh nghiệp / Tổ chức *"
             value={formData.companyName}
@@ -222,16 +219,6 @@ export const RegisterForm: React.FC = () => {
             isValid={formData.companyName.trim().length >= 2 && !errors.companyName}
             leftIcon={<Building2 size={16} />}
             placeholder="VD: Công ty Công nghệ Nexus"
-          />
-
-          <Input
-            label="Chức vụ / Vai trò *"
-            value={formData.roleTitle}
-            onChange={(e) => handleFieldChange('roleTitle', e.target.value)}
-            error={errors.roleTitle}
-            isValid={formData.roleTitle.trim().length >= 2 && !errors.roleTitle}
-            leftIcon={<Briefcase size={16} />}
-            placeholder="VD: Giám đốc Kinh doanh"
           />
         </div>
 
@@ -302,6 +289,8 @@ export const RegisterForm: React.FC = () => {
           Hoàn tất Đăng ký & Truy cập
         </Button>
       </form>
+
+      <SocialPhoneAuthSection mode="register" />
 
       <div className={styles.switchRow}>
         <span>Đã có tài khoản trên hệ thống?</span>

@@ -6,6 +6,16 @@ export interface ILoginPayload {
 
 export type LoginRequestDTO = ILoginPayload;
 
+export interface IForgotPasswordRequest {
+  email: string;
+}
+
+export interface IResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmPassword?: string;
+}
+
 export interface IRegisterPayload {
   fullName: string;
   email: string;
@@ -24,6 +34,7 @@ export interface IUser {
   department: string;
   avatarUrl: string;
   workspaceName: string;
+  phone?: string;
 }
 
 export interface IAuthResponse {
@@ -42,6 +53,23 @@ export interface IRefreshTokenResponseDTO {
   refreshedAt: string;
 }
 
+export type AuthProviderType = 'google' | 'linkedin' | 'phone' | 'apple';
+
+export interface ISocialAuthPayload {
+  provider: Exclude<AuthProviderType, 'phone'>;
+  email: string;
+  fullName: string;
+  companyName?: string;
+  roleTitle?: string;
+  hideAppleEmail?: boolean;
+}
+
+export interface IPhoneOtpVerifyPayload {
+  phoneNumber: string;
+  fullName?: string;
+  otpCode: string;
+}
+
 export interface IAuthContext {
   user: IUser | null;
   accessToken: string | null;
@@ -51,6 +79,11 @@ export interface IAuthContext {
   lastTokenRefresh: string | null;
   login: (payload: ILoginPayload) => Promise<IAuthResponse>;
   register: (payload: IRegisterPayload) => Promise<IAuthResponse>;
+  loginWithSocial: (payload: ISocialAuthPayload) => Promise<IAuthResponse>;
+  sendPhoneOtp: (
+    phoneNumber: string
+  ) => Promise<{ otpCode: string; expiresInSeconds: number; existingUser: IUser | null }>;
+  verifyPhoneOtp: (payload: IPhoneOtpVerifyPayload) => Promise<IAuthResponse>;
   logout: () => void;
   triggerMockTokenRefresh: () => Promise<string>;
   updateUserProfile: (partial: Partial<IUser>) => void;

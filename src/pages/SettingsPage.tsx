@@ -1,24 +1,45 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Bell,
-  Check,
   KeyRound,
   Laptop,
-  LogOut,
   Palette,
   RefreshCw,
   ShieldCheck,
   User,
+  Users,
+  Building2,
+  FolderTree,
+  Sliders,
+  GitCommit,
+  Trophy,
 } from 'lucide-react';
-import { Avatar, Badge, Button, Card, Input } from '../components/common';
+import { Badge, Button, Card } from '../components/common';
+import { UserManagementPanel } from '../components/users/UserManagementPanel';
 import { useCRMData } from '../context/CRMDataContext';
 import { useAuth } from '../hooks/useAuth';
 import { INotificationPreference, ISecuritySession } from '../interfaces';
+import { ChangePasswordForm } from '../features/change-password';
+import { OrgTreeView } from '../components/org/OrgTreeView';
+import { CategoryManager } from '../components/categories/CategoryManager';
+import { CustomFieldBuilder } from '../components/custom-fields/CustomFieldBuilder';
+import { PipelineConfigView } from '../components/pipeline/PipelineConfigView';
+import { WinLossConfig } from '../components/win-loss/WinLossConfig';
+import { ProfilePage } from './ProfilePage';
 import styles from './SettingsPage.module.css';
 
-type SettingsSectionType = 'profile' | 'appearance' | 'notification' | 'security';
+type SettingsSectionType =
+  | 'profile'
+  | 'org_tree'
+  | 'categories'
+  | 'custom_fields'
+  | 'pipeline'
+  | 'win_loss'
+  | 'security'
+  | 'users'
+  | 'appearance'
+  | 'notification';
 
 const INITIAL_NOTIF_PREFS: ReadonlyArray<INotificationPreference> = [
   {
@@ -78,25 +99,14 @@ const INITIAL_SESSIONS: ReadonlyArray<ISecuritySession> = [
 
 export const SettingsPage: React.FC = () => {
   const {
-    user,
     accessToken,
     refreshToken,
     lastTokenRefresh,
-    updateUserProfile,
     triggerMockTokenRefresh,
-    logout,
   } = useAuth();
   const { appearance, updateAppearance } = useCRMData();
-  const navigate = useNavigate();
 
   const [activeSection, setActiveSection] = useState<SettingsSectionType>('profile');
-  const [profileForm, setProfileForm] = useState({
-    fullName: user?.fullName ?? 'Quản Trị Viên Hệ Thống',
-    title: user?.title ?? 'Giám đốc Điều hành Hệ thống CRM',
-    department: user?.department ?? 'Ban Quản trị & Vận hành Doanh thu',
-    workspaceName: user?.workspaceName ?? 'Nexus Cloud Enterprise',
-  });
-  const [savedBanner, setSavedBanner] = useState<boolean>(false);
 
   const [notifPrefs, setNotifPrefs] = useState<INotificationPreference[]>(
     () => [...INITIAL_NOTIF_PREFS]
@@ -104,13 +114,6 @@ export const SettingsPage: React.FC = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(true);
   const [sessions, setSessions] = useState<ISecuritySession[]>(() => [...INITIAL_SESSIONS]);
   const [isRefreshingJwt, setIsRefreshingJwt] = useState<boolean>(false);
-
-  const handleSaveProfile = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    updateUserProfile(profileForm);
-    setSavedBanner(true);
-    window.setTimeout(() => setSavedBanner(false), 2500);
-  };
 
   const toggleNotifChannel = (
     id: string,
@@ -154,8 +157,106 @@ export const SettingsPage: React.FC = () => {
           >
             <User size={17} />
             <div>
-              <strong>Hồ sơ cá nhân</strong>
-              <span>Thông tin & chức danh</span>
+              <strong>Hồ sơ cá nhân & Avatar</strong>
+              <span>Thông tin, SĐT & ảnh đại diện</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'org_tree' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('org_tree')}
+          >
+            <Building2 size={17} />
+            <div>
+              <strong>Sơ đồ Cây Tổ chức (S2-06)</strong>
+              <span>Cây đa cấp, Trưởng bộ phận & Địa bàn</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'categories' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('categories')}
+          >
+            <FolderTree size={17} />
+            <div>
+              <strong>Danh mục dùng chung (S2-07)</strong>
+              <span>Nguồn khách hàng & Ngành nghề</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'custom_fields' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('custom_fields')}
+          >
+            <Sliders size={17} />
+            <div>
+              <strong>Trường tùy biến (S2-08)</strong>
+              <span>Text, Number, Date, Select & Dynamic Form</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'pipeline' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('pipeline')}
+          >
+            <GitCommit size={17} />
+            <div>
+              <strong>Cấu hình Phễu (S2-09)</strong>
+              <span>Chặng bán hàng, Xác suất & Exit-rule</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'win_loss' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('win_loss')}
+          >
+            <Trophy size={17} />
+            <div>
+              <strong>Thắng/Thua & Đối thủ (S2-10)</strong>
+              <span>Nguyên nhân WON/LOST & Điểm mạnh/yếu</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'security' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('security')}
+          >
+            <ShieldCheck size={17} />
+            <div>
+              <strong>Bảo mật & Phiên JWT</strong>
+              <span>Xác thực 2 lớp & Token S1-02</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.sideNav__btn} ${
+              activeSection === 'users' ? styles['sideNav__btn--active'] : ''
+            }`}
+            onClick={() => setActiveSection('users')}
+          >
+            <Users size={17} />
+            <div>
+              <strong>Quản trị Người dùng & Bàn giao</strong>
+              <span>Vai trò, Nhóm KD & Khóa tài khoản</span>
             </div>
           </button>
 
@@ -186,98 +287,21 @@ export const SettingsPage: React.FC = () => {
               <span>Email, Slack & Trong ứng dụng</span>
             </div>
           </button>
-
-          <button
-            type="button"
-            className={`${styles.sideNav__btn} ${
-              activeSection === 'security' ? styles['sideNav__btn--active'] : ''
-            }`}
-            onClick={() => setActiveSection('security')}
-          >
-            <ShieldCheck size={17} />
-            <div>
-              <strong>Bảo mật & Phiên JWT</strong>
-              <span>Xác thực 2 lớp & Token S1-02</span>
-            </div>
-          </button>
         </nav>
 
         {/* Right Side Content Area */}
         <div className={styles.contentColumn}>
-          {activeSection === 'profile' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={styles.panelStack}
-            >
-              <Card padding="lg">
-                <div className={styles.profileTop}>
-                  <Avatar
-                    src={user?.avatarUrl}
-                    name={profileForm.fullName}
-                    size="xl"
-                    status="online"
-                  />
-                  <div>
-                    <h2 className={styles.cardHeading}>{profileForm.fullName}</h2>
-                    <p className={styles.cardSub}>
-                      {user?.email} · <Badge tone="primary">{user?.role}</Badge>
-                    </p>
-                  </div>
-                </div>
+          {activeSection === 'profile' && <ProfilePage />}
 
-                <form onSubmit={handleSaveProfile} className={styles.profileForm}>
-                  <div className={styles.formGrid2}>
-                    <Input
-                      label="Họ và tên hiển thị"
-                      value={profileForm.fullName}
-                      onChange={(e) =>
-                        setProfileForm((prev) => ({ ...prev, fullName: e.target.value }))
-                      }
-                    />
-                    <Input
-                      label="Chức danh công việc"
-                      value={profileForm.title}
-                      onChange={(e) =>
-                        setProfileForm((prev) => ({ ...prev, title: e.target.value }))
-                      }
-                    />
-                    <Input
-                      label="Phòng ban / Bộ phận"
-                      value={profileForm.department}
-                      onChange={(e) =>
-                        setProfileForm((prev) => ({
-                          ...prev,
-                          department: e.target.value,
-                        }))
-                      }
-                    />
-                    <Input
-                      label="Tên không gian làm việc (Workspace)"
-                      value={profileForm.workspaceName}
-                      onChange={(e) =>
-                        setProfileForm((prev) => ({
-                          ...prev,
-                          workspaceName: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+          {activeSection === 'org_tree' && <OrgTreeView />}
 
-                  <div className={styles.formFooter}>
-                    {savedBanner && (
-                      <span className={styles.savedFeedback}>
-                        <Check size={15} /> Đã lưu cập nhật hồ sơ thành công
-                      </span>
-                    )}
-                    <Button type="submit" variant="primary">
-                      Lưu thay đổi hồ sơ
-                    </Button>
-                  </div>
-                </form>
-              </Card>
-            </motion.div>
-          )}
+          {activeSection === 'categories' && <CategoryManager />}
+
+          {activeSection === 'custom_fields' && <CustomFieldBuilder />}
+
+          {activeSection === 'pipeline' && <PipelineConfigView />}
+
+          {activeSection === 'win_loss' && <WinLossConfig />}
 
           {activeSection === 'appearance' && (
             <motion.div
@@ -504,6 +528,8 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </Card>
 
+              <ChangePasswordForm />
+
               {/* Active Sessions */}
               <Card padding="lg" className={styles.panelStack}>
                 <div className={styles.securityHeader}>
@@ -513,17 +539,6 @@ export const SettingsPage: React.FC = () => {
                       Danh sách các phiên thiết bị đang kết nối vào tài khoản quản trị của bạn.
                     </p>
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    leftIcon={<LogOut size={14} />}
-                    onClick={() => {
-                      logout();
-                      navigate('/login');
-                    }}
-                  >
-                    Đăng xuất & Xóa Token (S1-02)
-                  </Button>
                 </div>
 
                 <div className={styles.sessionList}>
@@ -558,6 +573,16 @@ export const SettingsPage: React.FC = () => {
                   ))}
                 </div>
               </Card>
+            </motion.div>
+          )}
+
+          {activeSection === 'users' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={styles.panelStack}
+            >
+              <UserManagementPanel />
             </motion.div>
           )}
         </div>
