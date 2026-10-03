@@ -8,12 +8,15 @@ import {
   Eye,
   EyeOff,
   Lock,
+  LogIn,
   Mail,
+  Sparkles,
   User,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { IRegisterPayload } from '../../interfaces';
 import { Button, Input } from '../common';
+import { SocialPhoneAuthSection } from './SocialPhoneAuthSection';
 import styles from './RegisterForm.module.css';
 
 interface IRegisterFieldErrors {
@@ -37,8 +40,7 @@ export const RegisterForm: React.FC = () => {
     confirmPassword: '',
   });
 
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [showPass, setShowPass] = useState<boolean>(false);
   const [errors, setErrors] = useState<IRegisterFieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -62,10 +64,7 @@ export const RegisterForm: React.FC = () => {
         if (trimmed.length < 2) return 'Vui lòng nhập tên công ty hoặc tổ chức.';
         return undefined;
       case 'password':
-        if (!value) return 'Vui lòng nhập mật khẩu.';
-        if (value.length < 8 || !/[A-Za-z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
-          return 'Mật khẩu phải tối thiểu 8 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt.';
-        }
+        if (value.length < 8) return 'Mật khẩu phải có từ 8 ký tự trở lên.';
         return undefined;
       case 'confirmPassword':
         if (!value) return 'Vui lòng xác nhận lại mật khẩu.';
@@ -128,7 +127,6 @@ export const RegisterForm: React.FC = () => {
     setErrors(nextErrors);
 
     if (Object.values(nextErrors).some((msg) => Boolean(msg))) {
-      setSubmitError('Vui lòng nhập đủ thông tin.');
       return;
     }
 
@@ -171,9 +169,13 @@ export const RegisterForm: React.FC = () => {
       transition={{ duration: 0.32 }}
     >
       <div className={styles.registerCard__header}>
+        <div className={styles.registerCard__badge}>
+          <Sparkles size={13} />
+          <span>KHỞI TẠO KHÔNG GIAN LÀM VIỆC MỚI</span>
+        </div>
         <h1 className={styles.registerCard__title}>Đăng ký tài khoản</h1>
         <p className={styles.registerCard__subtitle}>
-          Tạo tài khoản quản trị mới để bắt đầu sử dụng NexusCRM.
+          Tạo tài khoản quản trị mới để quản lý khách hàng, phễu doanh thu và hợp đồng doanh nghiệp.
         </p>
       </div>
 
@@ -191,16 +193,18 @@ export const RegisterForm: React.FC = () => {
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
             error={errors.fullName}
+            isValid={formData.fullName.trim().length >= 3 && !errors.fullName}
             leftIcon={<User size={16} />}
             placeholder="VD: Trần Minh Hoàng"
           />
 
           <Input
-            label="Email *"
+            label="Email công việc *"
             type="email"
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
             error={errors.email}
+            isValid={formData.email.includes('@') && !errors.email}
             leftIcon={<Mail size={16} />}
             placeholder="hoang.tran@congty.vn"
           />
@@ -212,6 +216,7 @@ export const RegisterForm: React.FC = () => {
             value={formData.companyName}
             onChange={(e) => handleFieldChange('companyName', e.target.value)}
             error={errors.companyName}
+            isValid={formData.companyName.trim().length >= 2 && !errors.companyName}
             leftIcon={<Building2 size={16} />}
             placeholder="VD: Công ty Công nghệ Nexus"
           />
@@ -220,44 +225,37 @@ export const RegisterForm: React.FC = () => {
         <div className={styles.grid2}>
           <Input
             label="Mật khẩu *"
-            name="password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPass ? 'text' : 'password'}
             value={formData.password}
             onChange={(e) => handleFieldChange('password', e.target.value)}
             error={errors.password}
+            isValid={formData.password.length >= 8 && !errors.password}
             leftIcon={<Lock size={16} />}
             placeholder="Tối thiểu 8 ký tự"
             rightElement={
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowPass((prev) => !prev)}
                 className={styles.eyeBtn}
-                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                aria-label={showPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             }
           />
 
           <Input
             label="Xác nhận mật khẩu *"
-            name="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type={showPass ? 'text' : 'password'}
             value={formData.confirmPassword}
             onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
             error={errors.confirmPassword}
+            isValid={
+              formData.confirmPassword.length >= 8 &&
+              formData.confirmPassword === formData.password
+            }
             leftIcon={<Lock size={16} />}
             placeholder="Nhập lại mật khẩu"
-            rightElement={
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-                className={styles.eyeBtn}
-                aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              >
-                {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-              </button>
-            }
           />
         </div>
 
@@ -292,10 +290,13 @@ export const RegisterForm: React.FC = () => {
         </Button>
       </form>
 
+      <SocialPhoneAuthSection mode="register" />
+
       <div className={styles.switchRow}>
-        <span>Đã có tài khoản?</span>
+        <span>Đã có tài khoản trên hệ thống?</span>
         <Link to="/login" className={styles.switchLink}>
-          Đăng nhập ngay!
+          <LogIn size={14} />
+          Quay lại Đăng nhập
         </Link>
       </div>
     </motion.div>

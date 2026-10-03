@@ -36,7 +36,7 @@ export const LoginForm: React.FC = () => {
   const [formState, setFormState] = useState<ILoginPayload>({
     email: '',
     password: '',
-    rememberMe: true,
+    rememberMe: false,
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -50,16 +50,14 @@ export const LoginForm: React.FC = () => {
   const validateField = (name: 'email' | 'password', value: string): string | undefined => {
     if (name === 'email') {
       const trimmed = value.trim();
-      if (!trimmed) return 'Vui lòng nhập địa chỉ email.';
+      if (!trimmed) return 'Vui lòng nhập địa chỉ email công việc.';
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(trimmed)) return 'Địa chỉ email không đúng định dạng.';
       return undefined;
     }
 
     if (!value) return 'Vui lòng nhập mật khẩu.';
-    if (value.length < 8 || !/[A-Za-z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
-      return 'Mật khẩu phải tối thiểu 8 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt.';
-    }
+    if (value.length < 8) return 'Mật khẩu phải có tối thiểu 8 ký tự.';
     return undefined;
   };
 
@@ -78,13 +76,7 @@ export const LoginForm: React.FC = () => {
     const passwordErr = validateField('password', formState.password);
     setFieldErrors({ email: emailErr, password: passwordErr });
 
-    if (!formState.email.trim() || !formState.password) {
-      setAuthError('Vui lòng nhập đủ thông tin.');
-      return;
-    }
-
     if (emailErr || passwordErr) {
-      setAuthError('Vui lòng nhập đúng email/mật khẩu.');
       return;
     }
 
@@ -92,13 +84,16 @@ export const LoginForm: React.FC = () => {
       await login(formState);
       setFailedAttempts(0);
       resetCountdown();
+      window.localStorage.removeItem(AUTH_STORAGE_KEYS.FAILED_ATTEMPTS);
       navigate('/dashboard');
     } catch (err: unknown) {
+      let serverMsg: string | undefined;
       let is429 = false;
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosErr = err as {
           response?: { status?: number; data?: { detail?: string; message?: string } };
         };
+        serverMsg = axiosErr.response?.data?.detail || axiosErr.response?.data?.message;
         if (axiosErr.response?.status === 429) {
           is429 = true;
         }
@@ -111,30 +106,35 @@ export const LoginForm: React.FC = () => {
       if (nextAttempts >= MAX_ATTEMPTS || is429) {
         startCountdown(LOCKOUT_DURATION_SECONDS);
         setAuthError(
-          'Bạn đã nhập sai 5 lần. Tài khoản tạm thời bị khóa trong 15 phút và chỉ đợi đến khi hết thời gian mới có thể nhập lại.'
+          serverMsg ||
+            'Bạn đã nhập sai quá 5 lần quy định. Tài khoản tạm thời bị khóa trong 15 phút để bảo mật.'
         );
       } else {
-        setAuthError('Vui lòng nhập đúng email/mật khẩu.');
+        const remaining = MAX_ATTEMPTS - nextAttempts;
+        setAuthError(
+          serverMsg ||
+            `Email hoặc mật khẩu không chính xác. Còn ${remaining} lần thử trước khi khóa bảo mật 15 phút.`
+        );
       }
     }
   };
 
-
-
-
-
+  const isEmailValid =
+    formState.email.trim().length > 0 && !validateField('email', formState.email);
+  const isPasswordValid =
+    formState.password.length >= 8 && !validateField('password', formState.password);
 
   return (
     <motion.div
-      className={styles.loginCard}
+      className={styles.loginFormContainer}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32 }}
     >
-      <div className={styles.loginCard__header}>
-        <h1 className={styles.loginCard__title}>Đăng nhập</h1>
-        <p className={styles.loginCard__subtitle}>
-          Nhập thông tin tài khoản để truy cập hệ thống NexusCRM.
+      <div className={styles.loginForm__header}>
+        <h1 className={styles.loginForm__title}>Đăng nhập hệ thống</h1>
+        <p className={styles.loginForm__subtitle}>
+          Nhập thông tin tài khoản doanh nghiệp để truy cập NexusCRM.
         </p>
       </div>
 
@@ -152,10 +152,10 @@ export const LoginForm: React.FC = () => {
             </div>
             <div className={styles.lockoutBanner__text}>
               <h2 className={styles.lockoutBanner__title}>
-                Tài khoản tạm khóa bảo mật (15 phút)
+                Tài khoản tạm khóa bảo mật (Chính sách 15 phút)
               </h2>
               <p className={styles.lockoutBanner__desc}>
-                Phát hiện 5 lần đăng nhập thất bại. Vui lòng chờ hết thời gian đếm ngược để thử lại.
+                Phát hiện 5 lần đăng nhập thất bại liên tiếp. Vui lòng chờ đồng hồ đếm ngược kết thúc để bảo đảm an toàn.
               </p>
             </div>
           </div>
@@ -168,8 +168,6 @@ export const LoginForm: React.FC = () => {
               </strong>
               <span className={styles.lockoutBanner__seconds}>({secondsLeft}s)</span>
             </div>
-
-
           </div>
 
           <div className={styles.lockoutBanner__progressTrack}>
@@ -190,16 +188,17 @@ export const LoginForm: React.FC = () => {
 
       <form className={styles.loginForm} onSubmit={(e) => void handleSubmit(e)} noValidate>
         <Input
-          label="Email"
+          label="Email công việc"
           type="email"
           name="email"
           autoComplete="email"
           value={formState.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
           error={fieldErrors.email}
+          isValid={isEmailValid}
           disabled={isLockedOut || isLoading}
           leftIcon={<Mail size={17} />}
-          placeholder="admin@nexuscrm.vn"
+          placeholder="name@company.com"
         />
 
         <Input
@@ -210,6 +209,7 @@ export const LoginForm: React.FC = () => {
           value={formState.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
           error={fieldErrors.password}
+          isValid={isPasswordValid}
           disabled={isLockedOut || isLoading}
           leftIcon={<Lock size={17} />}
           placeholder="••••••••••••"
@@ -221,7 +221,7 @@ export const LoginForm: React.FC = () => {
               aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               disabled={isLockedOut}
             >
-              {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           }
         />
@@ -236,21 +236,14 @@ export const LoginForm: React.FC = () => {
                 setFormState((prev) => ({ ...prev, rememberMe: e.target.checked }))
               }
             />
-            <span>Duy trì đăng nhập 30 ngày</span>
+            <span>Duy trì đăng nhập</span>
           </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link
-              to="/forgot-password"
-              style={{
-                fontSize: '0.8125rem',
-                color: 'var(--color-primary)',
-                textDecoration: 'none',
-                fontWeight: 500,
-              }}
-            >
-              Quên mật khẩu?
-            </Link>
-          </div>
+          <Link
+            to="/forgot-password"
+            className={styles.forgotPasswordLink}
+          >
+            Quên mật khẩu?
+          </Link>
         </div>
 
         <Button
@@ -265,14 +258,6 @@ export const LoginForm: React.FC = () => {
           {isLockedOut ? `Đang khóa (${formattedTime})` : 'Đăng nhập vào Hệ thống'}
         </Button>
       </form>
-
-      {/* Liên kết chuyển sang trang Đăng ký (Zalo style) */}
-      <div className={styles.switchAuthRow}>
-        <span>Bạn chưa có tài khoản?</span>
-        <Link to="/register" className={styles.switchAuthLink}>
-          Đăng ký ngay!
-        </Link>
-      </div>
     </motion.div>
   );
 };

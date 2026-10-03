@@ -1,11 +1,11 @@
 .registerCard {
   width: 100%;
-  max-width: 480px;
-  background-color: #ffffff;
+  max-width: 520px;
+  background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 32px 28px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-xl);
+  padding: 32px 30px;
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -14,20 +14,31 @@
 .registerCard__header {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.registerCard__badge {
+  display: inline-flex;
   align-items: center;
-  text-align: center;
   gap: 6px;
-  padding-bottom: 4px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .registerCard__title {
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: var(--color-text-primary);
 }
 
 .registerCard__subtitle {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   color: var(--color-text-secondary);
 }
 
@@ -98,26 +109,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding-top: 16px;
+  gap: 8px;
+  padding-top: 14px;
   border-top: 1px solid var(--color-border-subtle);
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   color: var(--color-text-secondary);
 }
 
 .switchLink {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 600;
+  gap: 5px;
+  font-weight: 700;
   color: var(--color-primary);
-  text-decoration: none;
-  transition: color 0.15s ease, text-decoration 0.15s ease;
 }
 
 .switchLink:hover {
   text-decoration: underline;
-  color: var(--color-primary-hover);
 }
 
 @media (max-width: 600px) {

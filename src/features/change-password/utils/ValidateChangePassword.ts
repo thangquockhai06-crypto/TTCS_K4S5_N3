@@ -17,13 +17,10 @@ export function validateChangePassword(
   } else {
     if (values.newPassword.length < 8) {
       errors.newPassword = 'Mật khẩu mới phải có ít nhất 8 ký tự.';
-    } else if (
-      !/\p{L}/u.test(values.newPassword) ||
-      !/[0-9]/.test(values.newPassword) ||
-      !/[^A-Za-z0-9]/.test(values.newPassword)
-    ) {
-      errors.newPassword =
-        'Mật khẩu mới phải bao gồm cả chữ cái, chữ số và ký tự đặc biệt.';
+    } else if (!/\p{L}/u.test(values.newPassword)) {
+      errors.newPassword = 'Mật khẩu mới phải có ít nhất một chữ cái.';
+    } else if (!/[0-9]/.test(values.newPassword)) {
+      errors.newPassword = 'Mật khẩu mới phải có ít nhất một chữ số.';
     }
   }
 

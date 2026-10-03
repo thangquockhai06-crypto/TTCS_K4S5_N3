@@ -78,7 +78,7 @@ export const ChangePasswordForm: React.FC = () => {
               aria-label={visibleFields.currentPassword ? 'Ẩn mật khẩu hiện tại' : 'Hiện mật khẩu hiện tại'}
               aria-pressed={visibleFields.currentPassword}
             >
-              {visibleFields.currentPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              {visibleFields.currentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           }
         />
@@ -92,7 +92,7 @@ export const ChangePasswordForm: React.FC = () => {
           onChange={(event) => updateField('newPassword', event.target.value)}
           onBlur={() => blurField('newPassword')}
           error={errors.newPassword}
-          helperText="Tối thiểu 8 ký tự, gồm ít nhất một chữ cái, một chữ số và một ký tự đặc biệt."
+          helperText="Tối thiểu 8 ký tự, gồm ít nhất một chữ cái và một chữ số."
           leftIcon={<LockKeyhole size={16} />}
           rightElement={
             <button
@@ -102,7 +102,7 @@ export const ChangePasswordForm: React.FC = () => {
               aria-label={visibleFields.newPassword ? 'Ẩn mật khẩu mới' : 'Hiện mật khẩu mới'}
               aria-pressed={visibleFields.newPassword}
             >
-              {visibleFields.newPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              {visibleFields.newPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           }
         />
@@ -125,7 +125,7 @@ export const ChangePasswordForm: React.FC = () => {
               aria-label={visibleFields.confirmPassword ? 'Ẩn mật khẩu xác nhận' : 'Hiện mật khẩu xác nhận'}
               aria-pressed={visibleFields.confirmPassword}
             >
-              {visibleFields.confirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              {visibleFields.confirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           }
         />

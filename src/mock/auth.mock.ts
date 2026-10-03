@@ -16,8 +16,6 @@ export const AUTH_STORAGE_KEYS = {
   REGISTERED_USERS: 'nexus_crm_registered_users',
   LOCKOUT_UNTIL: 'nexus_crm_lockout_until_ts',
   FAILED_ATTEMPTS: 'nexus_crm_failed_login_attempts',
-  REMEMBER_ME: 'nexus_crm_remember_me',
-  SESSION_EXPIRES_AT: 'nexus_crm_session_expires_at',
 } as const;
 
 export interface IStoredAccount {
@@ -28,7 +26,7 @@ export interface IStoredAccount {
 
 export const ADMIN_ACCOUNT: IStoredAccount = {
   email: 'admin@nexuscrm.vn',
-  password: 'admin@2026',
+  password: 'Admin@2026',
   user: {
     id: 'usr-admin-01',
     fullName: 'Quản Trị Viên Hệ Thống',
@@ -75,10 +73,7 @@ export async function authenticateWithMock(payload: ILoginPayload): Promise<IAut
 
   const matched = allAccounts.find(
     (entry) =>
-      entry.email.toLowerCase() === normalizedEmail &&
-      (entry.password === payload.password ||
-        (entry.email === ADMIN_ACCOUNT.email &&
-          (payload.password === 'admin@2026' || payload.password === 'Admin@2026')))
+      entry.email.toLowerCase() === normalizedEmail && entry.password === payload.password
   );
 
   if (!matched) {

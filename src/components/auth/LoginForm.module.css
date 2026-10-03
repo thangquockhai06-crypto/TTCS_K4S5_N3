@@ -1,35 +1,27 @@
-.loginCard {
-  width: 460px;
-  max-width: 100%;
-  background-color: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 32px 28px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+.loginFormContainer {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-sizing: border-box;
 }
 
-.loginCard__header {
+.loginForm__header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
   gap: 6px;
-  padding-bottom: 4px;
 }
 
-.loginCard__title {
-  font-size: 1.45rem;
+.loginForm__title {
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-primary);
+  margin: 0;
 }
 
-.loginCard__subtitle {
-  font-size: 0.85rem;
+.loginForm__subtitle {
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .lockoutBanner {
@@ -63,7 +55,7 @@
 .lockoutBanner__title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #B91C1C;
+  color: #b91c1c;
 }
 
 .lockoutBanner__desc {
@@ -108,23 +100,6 @@
   color: var(--color-text-muted);
 }
 
-.lockoutBanner__resetBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: var(--radius-xs);
-  background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border-strong);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.lockoutBanner__resetBtn:hover {
-  background-color: var(--color-bg-hover);
-}
-
 .lockoutBanner__progressTrack {
   width: 100%;
   height: 5px;
@@ -135,7 +110,7 @@
 
 .lockoutBanner__progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #EF4444, #F59E0B);
+  background: linear-gradient(90deg, #ef4444, #f59e0b);
   transition: width 0.4s linear;
 }
 
@@ -147,7 +122,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--color-danger-soft);
   border: 1px solid rgba(239, 68, 68, 0.28);
-  color: #B91C1C;
+  color: #b91c1c;
   font-size: 0.8125rem;
   font-weight: 500;
 }
@@ -160,7 +135,7 @@
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .loginForm__eyeBtn {
@@ -169,6 +144,7 @@
   justify-content: center;
   color: var(--color-text-muted);
   padding: 4px;
+  cursor: pointer;
 }
 
 .loginForm__eyeBtn:hover {
@@ -192,52 +168,19 @@
   cursor: pointer;
 }
 
-.loginForm__simulateLockBtn {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.switchAuthRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border-subtle);
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.switchAuthLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 600;
+.forgotPasswordLink {
+  font-size: 0.8125rem;
   color: var(--color-primary);
   text-decoration: none;
-  transition: color 0.15s ease, text-decoration 0.15s ease;
+  font-weight: 500;
 }
 
-.switchAuthLink:hover {
+.forgotPasswordLink:hover {
   text-decoration: underline;
-  color: var(--color-primary-hover);
 }
 
 @media (max-width: 480px) {
-  .loginCard {
-    padding: 22px 16px;
-    border-radius: var(--radius-lg);
-  }
-
-  .loginCard__title {
-    font-size: 1.35rem;
-  }
-
-  .switchAuthRow {
-    flex-direction: column;
-    gap: 4px;
+  .loginForm__title {
+    font-size: 1.3rem;
   }
 }

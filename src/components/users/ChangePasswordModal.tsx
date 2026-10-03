@@ -13,7 +13,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
       isOpen={isOpen}
       onClose={onClose}
       title="Đổi mật khẩu tài khoản"
-      subtitle="Yêu cầu mật khẩu tối thiểu 8 ký tự, bao gồm cả chữ cái, chữ số và ký tự đặc biệt."
+      subtitle="Yêu cầu mật khẩu tối thiểu 8 ký tự, bao gồm cả chữ cái và chữ số."
       maxWidth="md"
     >
       <ChangePasswordForm />
