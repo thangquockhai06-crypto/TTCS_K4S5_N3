@@ -81,6 +81,7 @@ models/
 routers/
 schemas/
 services/
+repositories/
 tests/
 Subtask Backend/
 TTCS_K4S5_N3/
