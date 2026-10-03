@@ -65,6 +65,12 @@
   outline: none;
 }
 
+.field__input:focus,
+.field__input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .field__input--withLeft {
   padding-left: 10px;
 }

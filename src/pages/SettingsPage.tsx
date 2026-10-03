@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Bell,
   KeyRound,
   Laptop,
-  LogOut,
   Palette,
   RefreshCw,
   ShieldCheck,
@@ -105,10 +103,8 @@ export const SettingsPage: React.FC = () => {
     refreshToken,
     lastTokenRefresh,
     triggerMockTokenRefresh,
-    logout,
   } = useAuth();
   const { appearance, updateAppearance } = useCRMData();
-  const navigate = useNavigate();
 
   const [activeSection, setActiveSection] = useState<SettingsSectionType>('profile');
 
@@ -543,17 +539,6 @@ export const SettingsPage: React.FC = () => {
                       Danh sách các phiên thiết bị đang kết nối vào tài khoản quản trị của bạn.
                     </p>
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    leftIcon={<LogOut size={14} />}
-                    onClick={() => {
-                      logout();
-                      navigate('/login');
-                    }}
-                  >
-                    Đăng xuất & Xóa Token (S1-02)
-                  </Button>
                 </div>
 
                 <div className={styles.sessionList}>
