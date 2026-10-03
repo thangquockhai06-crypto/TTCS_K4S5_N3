@@ -8,6 +8,7 @@ dist/
 dist-ssr/
 *.local
 *.tsbuildinfo
+.vite/
 
 # Environment variables
 .env
@@ -73,3 +74,18 @@ server/.env
 *.sqlite
 *.sqlite3
 server/*.db
+
+# Backend repository files (tracked in TTCS_K4S5_N3_Backend)
+server/
+models/
+routers/
+schemas/
+services/
+tests/
+Subtask Backend/
+TTCS_K4S5_N3/
+app.py
+database.py
+pytest.ini
+start-all.bat
+start-server.bat
